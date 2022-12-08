@@ -4,12 +4,13 @@ Reference: https://github.com/Farama-Foundation/Gymnasium/blob/main/gymnasium/en
 import math
 import numpy as np
 
-class PendulumOnCart():
+
+class PendulumOnCart:
     def __init__(self, render=False):
         # physical parameters
-        self.g = 9.81
-        self.mc = 2.4 
-        self.mp = 0.23 
+        self.g = -9.81
+        self.mc = 2.4
+        self.mp = 0.23
         self.mtotal = self.mc + self.mp
         # self.length = 0.5  # actually half the pole's length
         # self.polemass_length = self.masspole * self.length
@@ -44,13 +45,26 @@ class PendulumOnCart():
         self.render_fps = 50
 
     def step(self, action):
-        x, x_dot, theta, theta_dot = (self.x, self.x_dot, self.theta, self.theta_dot,)
+        x, x_dot, theta, theta_dot = (
+            self.x,
+            self.x_dot,
+            self.theta,
+            self.theta_dot,
+        )
         u = self.force_mag * action
         costheta = math.cos(theta)
         sintheta = math.sin(theta)
 
-        xdd = (u + self.mp*self.lp*sintheta*theta_dot**2-self.mp*self.g*costheta*sintheta)/(self.mc+self.mp-self.mp*costheta**2)
-        thetadd = (u*costheta+(self.mc+self.mp)*self.g*sintheta+self.mp*self.lp*costheta*sintheta*theta_dot**2)/(self.mp*self.lp*costheta**2-(self.mc+self.mp)*self.lp)
+        xdd = (
+            u
+            + self.mp * self.lp * sintheta * theta_dot**2
+            - self.mp * self.g * costheta * sintheta
+        ) / (self.mc + self.mp - self.mp * costheta**2)
+        thetadd = (
+            u * costheta
+            + (self.mc + self.mp) * self.g * sintheta
+            + self.mp * self.lp * costheta * sintheta * theta_dot**2
+        ) / (self.mp * self.lp * costheta**2 - (self.mc + self.mp) * self.lp)
 
         self.x = x + self.tau * x_dot
         self.x_dot = x_dot + self.tau * xdd
@@ -62,21 +76,26 @@ class PendulumOnCart():
 
     def reset(self):
         # state/observations.
-        self.x, self.x_dot, self.theta, self.theta_dot = (0, 0, 0, 0,)
+        self.x, self.x_dot, self.theta, self.theta_dot = (
+            0,
+            0,
+            0,
+            0,
+        )
 
     def render(self):
         try:
             import pygame
             from pygame import gfxdraw
         except ImportError:
-            raise ImportError(
-                "pygame is not installed, run `pip install pygame`"
-            )
+            raise ImportError("pygame is not installed, run `pip install pygame`")
 
         if self.screen is None:
             pygame.init()
             pygame.display.init()
-            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+            self.screen = pygame.display.set_mode(
+                (self.screen_width, self.screen_height)
+            )
         if self.clock is None:
             self.clock = pygame.time.Clock()
 
@@ -87,7 +106,12 @@ class PendulumOnCart():
         cartwidth = 50.0
         cartheight = 30.0
 
-        x = (self.x, self.x_dot, self.theta, self.theta_dot,)
+        x = (
+            self.x,
+            self.x_dot,
+            self.theta,
+            self.theta_dot,
+        )
 
         self.surf = pygame.Surface((self.screen_width, self.screen_height))
         self.surf.fill((255, 255, 255))
@@ -149,12 +173,13 @@ class PendulumOnCart():
             self.isopen = False
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pendulum = PendulumOnCart(render=True)
     # pendulum.masspole = 0.01
-    N_SIM_STEPS = 300
+    N_SIM_STEPS = 800
     N_FORCE_STEPS = 5
     FORCE_MAGNITUTUDE = 0.1  # Newtons
+    N_FORCE_STEPS = 50
 
     # triangle force
     # force_vec = np.linspace(-FORCE_MAGNITUTUDE, FORCE_MAGNITUTUDE, num=N_FORCE_STEPS)
@@ -163,7 +188,10 @@ if __name__ == '__main__':
 
     # random normal noise force
     np.random.seed(42)
-    force_vec = np.random.normal(loc=0, scale=FORCE_MAGNITUTUDE, size=N_SIM_STEPS)
+    force_vec = np.zeros(N_SIM_STEPS)
+    force_vec[:N_FORCE_STEPS] = np.random.normal(
+        loc=0, scale=FORCE_MAGNITUTUDE, size=N_FORCE_STEPS
+    )
 
     pendulum.reset()
     for f in force_vec:
