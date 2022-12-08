@@ -7,14 +7,27 @@ import numpy as np
 class PendulumOnCart():
     def __init__(self, render=False):
         # physical parameters
-        self.gravity = 9.8
-        self.masscart = 1.0
-        self.masspole = 0.1
-        self.total_mass = self.masspole + self.masscart
-        self.length = 0.5  # actually half the pole's length
-        self.polemass_length = self.masspole * self.length
+        self.g = 9.81
+        self.mc = 2.4 
+        self.mp = 0.23 
+        self.mtotal = self.mc + self.mp
+        # self.length = 0.5  # actually half the pole's length
+        # self.polemass_length = self.masspole * self.length
+        self.lp = 0.36
         self.force_mag = 1.0
         self.tau = 0.02  # seconds between state updates
+        # initial state
+        self.x0 = 0.5
+        self.x_dot0 = 0
+        self.theta0 = 3.1
+        self.theta_dot0 = 0
+        # KF initial estimates
+        self.xKF0 = -0.5
+        self.x_dotKF0 = 0
+        self.thetaKF0 = 2.8
+        self.theta_dotKF0 = 0
+        self.lpKF = 0.1
+        self.mpKF = 0.1
         # states
         self.x = 0
         self.x_dot = 0
@@ -32,24 +45,17 @@ class PendulumOnCart():
 
     def step(self, action):
         x, x_dot, theta, theta_dot = (self.x, self.x_dot, self.theta, self.theta_dot,)
-        force = self.force_mag * action
+        u = self.force_mag * action
         costheta = math.cos(theta)
         sintheta = math.sin(theta)
 
-        # For the interested reader:
-        # https://coneural.org/florian/papers/05_cart_pole.pdf
-        temp = (
-            force + self.polemass_length * theta_dot**2 * sintheta
-        ) / self.total_mass
-        thetaacc = (self.gravity * sintheta - costheta * temp) / (
-            self.length * (4.0 / 3.0 - self.masspole * costheta**2 / self.total_mass)
-        )
-        xacc = temp - self.polemass_length * thetaacc * costheta / self.total_mass
+        xdd = (u + self.mp*self.lp*sintheta*theta_dot**2-self.mp*self.g*costheta*sintheta)/(self.mc+self.mp-self.mp*costheta**2)
+        thetadd = (u*costheta+(self.mc+self.mp)*self.g*sintheta+self.mp*self.lp*costheta*sintheta*theta_dot**2)/(self.mp*self.lp*costheta**2-(self.mc+self.mp)*self.lp)
 
         self.x = x + self.tau * x_dot
-        self.x_dot = x_dot + self.tau * xacc
+        self.x_dot = x_dot + self.tau * xdd
         self.theta = theta + self.tau * theta_dot
-        self.theta_dot = theta_dot + self.tau * thetaacc
+        self.theta_dot = theta_dot + self.tau * thetadd
 
         if self.render_bool:
             self.render()
@@ -77,7 +83,7 @@ class PendulumOnCart():
         world_width = self.world_width
         scale = self.screen_width / world_width
         polewidth = 10.0
-        polelen = scale * (2 * self.length)
+        polelen = scale * (2 * self.lp)
         cartwidth = 50.0
         cartheight = 30.0
 
