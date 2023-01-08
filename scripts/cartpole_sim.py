@@ -45,6 +45,7 @@ class PendulumOnCart:
         self.render_fps = 50
 
     def step(self, action):
+        # TODO: use CasADi Sundials integrator instead. See T07-01
         x, x_dot, theta, theta_dot = (
             self.x,
             self.x_dot,
