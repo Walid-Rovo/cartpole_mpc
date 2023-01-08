@@ -66,10 +66,11 @@ class PendulumOnCart:
             + self.mp * self.lp * costheta * sintheta * theta_dot**2
         ) / (self.mp * self.lp * costheta**2 - (self.mc + self.mp) * self.lp)
 
-        self.x = x + self.tau * x_dot
+        # Semi-implicit Euler integration
         self.x_dot = x_dot + self.tau * xdd
-        self.theta = theta + self.tau * theta_dot
+        self.x = x + self.tau * x_dot
         self.theta_dot = theta_dot + self.tau * thetadd
+        self.theta = theta + self.tau * theta_dot
 
         if self.render_bool:
             self.render()
