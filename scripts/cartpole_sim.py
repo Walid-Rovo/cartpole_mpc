@@ -3,6 +3,8 @@ Reference: https://github.com/Farama-Foundation/Gymnasium/blob/main/gymnasium/en
 """
 import math
 import numpy as np
+import matplotlib.pyplot as plt
+from casadi import *
 
 
 class PendulumOnCart:
