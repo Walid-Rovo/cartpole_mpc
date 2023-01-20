@@ -65,9 +65,9 @@ class PendulumOnCart:
         self.ode_solver = integrator('F', 'idas', self.ode, self.opts)
 
         # render
-        self.world_width = 2.4 * 2
-        self.screen_width = 600
-        self.screen_height = 400
+        self.world_width = 10 #4.8
+        self.screen_width = 1080 #600
+        self.screen_height = 720 #400
         self.screen = None
         self.clock = None
         self.isopen = True

@@ -6,22 +6,27 @@ import casadi.tools as ct
 
 
 class MPC:
-    def __init__(self, K=2, N=30, Q=20, R=10):
+    def __init__(self, K=2, N=30, Q=1e-3, R=1e-4, dt=0.02):
         self.mpc_solver = None
-        self.K = K
-        self.N = N
-        self.Q = Q
-        self.R = R
+        self.K = K #2
+        self.N = N #30
+        self.Q = Q #20
+        self.R = R #10
+
+        self.dt = dt
 
         self.lb_opt_x = None
         self.ub_opt_x = None
         self.opt_x = None
 
+        self.max_x = 3.0 #8.0
+        self.max_u = 30 #2.0
+
     def generate_solver(self):
         ## System declaration
         # some common parameters
         # Timestep
-        dt = 0.02
+        self.dt = 0.02
 
         # Dimensions of x and u:
         nx = 4
@@ -86,7 +91,8 @@ class MPC:
         ## MPC with Orthogonal Collocation
         Q = self.Q
         Q = Q * np.diag(np.ones(nx))
-        Q[0, 0] = 0
+        #Q[0, 0] *= 1.0
+        #Q[1, 1] *= 1.0
 
         R = self.R
         R = np.diag(R * np.ones(nu))
@@ -103,11 +109,11 @@ class MPC:
         N = self.N
 
         # state constraints
-        lb_x = -8 * np.ones((nx, 1))
-        ub_x = 8 * np.ones((nx, 1))
+        lb_x = -self.max_x * np.ones((nx, 1))
+        ub_x = self.max_x * np.ones((nx, 1))
         # input constraints
-        lb_u = -2.0 * np.ones((nu, 1))
-        ub_u = 2.0 * np.ones((nu, 1))
+        lb_u = - self.max_u * np.ones((nu, 1))
+        ub_u = self.max_u * np.ones((nu, 1))
 
         # Define Optimization variable
         self.opt_x = ct.struct_symSX([
@@ -151,7 +157,7 @@ class MPC:
             # 03 - Your code here!
             # equality constraints (system equation)
             for k in range(1, K + 1):
-                gk = -dt * system(self.opt_x['x', i, k], self.opt_x['u', i])
+                gk = -self.dt * system(self.opt_x['x', i, k], self.opt_x['u', i])
                 for j in range(K + 1):
                     gk += A[j, k] * self.opt_x['x', i, j]
 
@@ -178,3 +184,4 @@ class MPC:
         # 06
 
         return self.mpc_solver
+
