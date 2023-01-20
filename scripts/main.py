@@ -49,16 +49,12 @@ def simulate():
         # simulate the system
         x_next = pendulum.step(action=u_k)
 
-        # 04 - Your code here!
         # Update the initial state
         x_0 = x_next
-        # 04
 
-        # 05 - Your code here!
         # Store the results
         res_x_mpc.append(x_next)
         res_u_mpc.append(u_k)
-        # 05
 
     # Make an array from the list of arrays:
     res_x_mpc = np.concatenate(res_x_mpc, axis=1)
