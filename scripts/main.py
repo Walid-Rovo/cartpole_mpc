@@ -1,9 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+from casadi import *
 
-import mpc
+from mpc import MPC
 import cartpole_sim
+from observer import EKF
 
 
 def simulate():
@@ -21,7 +23,7 @@ def simulate():
     x_0 = np.array([0, 0.2, np.pi / 2, 0]).reshape(nx, 1)
 
     # configure controller
-    solver = mpc.MPC(dt=DT)
+    solver = MPC(dt=DT)
     controller = solver.generate_solver()
 
     # configure simulator
@@ -29,7 +31,7 @@ def simulate():
 
     # loop Variables
     # Initialize result lists for states and inputs
-    res_x_mpc = [x_0]
+    res_x_mpc = [x_0[:4]]
     res_u_mpc = []
 
     # Set number of iterations
