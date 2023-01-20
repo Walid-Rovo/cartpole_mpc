@@ -8,34 +8,62 @@ from casadi import *
 
 
 class PendulumOnCart:
-    def __init__(self, render=False):
+    # TODO: figure out why using theta=3.1 put the pole in the down position. It should be up
+    def __init__(self, initial_states=[0.0, 0.0, 0.1, 0.0],dt=0.02, render=False):
         # physical parameters
         self.g = -9.81
         self.mc = 2.4
         self.mp = 0.23
         self.mtotal = self.mc + self.mp
+        self.dt = dt
+
         # self.length = 0.5  # actually half the pole's length
         # self.polemass_length = self.masspole * self.length
+
         self.lp = 0.36
         self.force_mag = 1.0
         self.tau = 0.02  # seconds between state updates
-        # initial state
-        self.x0 = 0.5
-        self.x_dot0 = 0
-        self.theta0 = 3.1
-        self.theta_dot0 = 0
-        # KF initial estimates
-        self.xKF0 = -0.5
-        self.x_dotKF0 = 0
-        self.thetaKF0 = 2.8
-        self.theta_dotKF0 = 0
-        self.lpKF = 0.1
-        self.mpKF = 0.1
-        # states
+
+        # # states
         self.x = 0
         self.x_dot = 0
         self.theta = 0
         self.theta_dot = 0
+
+        # CasADi function instantiation
+        # x[0] = x, x[1] = x_dot, x[2] = theta, x[3] = theta_dot
+        self.nx = 4
+        self.nu = 1
+        self.x_sym = SX.sym("x", self.nx, 1)
+        self.u_sym = SX.sym("u", self.nu, 1)
+
+        self.xdot_sym = vertcat(
+            # x[0]_dot =
+            self.x_sym[1],
+            # self.x_sym[1]_dot =
+            (self.u_sym + self.mp * self.lp * sin(self.x_sym[2]) * self.x_sym[3]**2 - self.mp * self.g * cos(self.x_sym[2]) * sin(self.x_sym[2]))
+            / (self.mc + self.mp - self.mp * cos(self.x_sym[2])**2),
+            # self.x_sym[2]_dot =
+            self.x_sym[3],
+            # self.x_sym[3]_dot =
+            (self.u_sym * cos(self.x_sym[2]) + (self.mc + self.mp) * self.g * sin(self.x_sym[2]) + self.mp * self.lp * cos(self.x_sym[2]) * sin(self.x_sym[2]) * self.x_sym[3]**2)
+            / (self.mp * self.lp * cos(self.x_sym[2])**2 - (self.mc + self.lp) * self.lp),
+        )
+
+        self.system = Function("system", [self.x_sym, self.u_sym], [self.xdot_sym])
+        # CasADi integrator instantiation
+        self.x_sym0 = np.array(initial_states).reshape(self.nx,1)
+        # The CasADi integrator needs a dictionary of the states ('x'), the system state-space eqself.ations as a CasADi symbolic expression ('ode'), input ('p').
+        self.ode = {'x': self.x_sym, 'ode': self.xdot_sym, 'p': self.u_sym}
+
+        # By default the solver integrates from 0 to 1. We change the final time to dt.
+        self.opts = {'tf': self.dt}
+
+        # Create the solver object.
+        # https://casadi.sourceforge.net/api/html/db/d3d/classcasadi_1_1Integrator.html#:~:text=Constructor%20%26%20Destructor%20Documentation
+        #                      name, solv typ, function dict, options dict
+        self.ode_solver = integrator('F', 'idas', self.ode, self.opts)
+
         # render
         self.world_width = 2.4 * 2
         self.screen_width = 600
@@ -46,32 +74,16 @@ class PendulumOnCart:
         self.render_bool = render
         self.render_fps = 50
 
-    def step(self, action):
-        x, x_dot, theta, theta_dot = (
-            self.x,
-            self.x_dot,
-            self.theta,
-            self.theta_dot,
-        )
-        u = self.force_mag * action
-        costheta = math.cos(theta)
-        sintheta = math.sin(theta)
+    def step(self, action: float):
+        action = np.array([[action]])
+        res_integrator = self.ode_solver(x0=self.x_sym0, p=action)
+        # integrator returns dict, one of the values is the final x
+        self.x_sym0 = res_integrator['xf']
 
-        xdd = (
-            u
-            + self.mp * self.lp * sintheta * theta_dot**2
-            - self.mp * self.g * costheta * sintheta
-        ) / (self.mc + self.mp - self.mp * costheta**2)
-        thetadd = (
-            u * costheta
-            + (self.mc + self.mp) * self.g * sintheta
-            + self.mp * self.lp * costheta * sintheta * theta_dot**2
-        ) / (self.mp * self.lp * costheta**2 - (self.mc + self.mp) * self.lp)
-
-        self.x = x + self.tau * x_dot
-        self.x_dot = x_dot + self.tau * xdd
-        self.theta = theta + self.tau * theta_dot
-        self.theta_dot = theta_dot + self.tau * thetadd
+        self.x = self.x_sym0[0]
+        self.x_dot = self.x_sym0[1]
+        self.theta = self.x_sym0[2]
+        self.theta_dot = self.x_sym0[3]
 
         if self.render_bool:
             self.render()
@@ -118,12 +130,14 @@ class PendulumOnCart:
         self.surf = pygame.Surface((self.screen_width, self.screen_height))
         self.surf.fill((255, 255, 255))
 
+
         l, r, t, b = -cartwidth / 2, cartwidth / 2, cartheight / 2, -cartheight / 2
         axleoffset = cartheight / 4.0
         cartx = x[0] * scale + self.screen_width / 2.0  # MIDDLE OF CART
         carty = 100  # TOP OF CART
         cart_coords = [(l, b), (l, t), (r, t), (r, b)]
         cart_coords = [(c[0] + cartx, c[1] + carty) for c in cart_coords]
+        gfxdraw.hline(self.surf, 0, self.screen_width, carty, (0, 0, 0))
         gfxdraw.aapolygon(self.surf, cart_coords, (0, 0, 0))
         gfxdraw.filled_polygon(self.surf, cart_coords, (0, 0, 0))
 
@@ -157,7 +171,6 @@ class PendulumOnCart:
             (129, 132, 203),
         )
 
-        gfxdraw.hline(self.surf, 0, self.screen_width, carty, (0, 0, 0))
 
         self.surf = pygame.transform.flip(self.surf, False, True)
         self.screen.blit(self.surf, (0, 0))
@@ -176,15 +189,17 @@ class PendulumOnCart:
 
 
 if __name__ == "__main__":
+
     pendulum = PendulumOnCart(render=True)
+
     # pendulum.masspole = 0.01
-    N_SIM_STEPS = 800
+    N_SIM_STEPS = 1000
     N_FORCE_STEPS = 5
-    FORCE_MAGNITUTUDE = 0.1  # Newtons
+    FORCE_MAGNITUDE = 0.1  # Newtons
     N_FORCE_STEPS = 50
 
     # triangle force
-    # force_vec = np.linspace(-FORCE_MAGNITUTUDE, FORCE_MAGNITUTUDE, num=N_FORCE_STEPS)
+    # force_vec = np.linspace(-FORCE_MAGNITUDE, FORCE_MAGNITUDE, num=N_FORCE_STEPS)
     # force_vec = np.concatenate([force_vec, -force_vec])
     # force_vec = np.repeat(force_vec, repeats=int(N_SIM_STEPS/N_FORCE_STEPS))
 
@@ -192,10 +207,11 @@ if __name__ == "__main__":
     np.random.seed(42)
     force_vec = np.zeros(N_SIM_STEPS)
     force_vec[:N_FORCE_STEPS] = np.random.normal(
-        loc=0, scale=FORCE_MAGNITUTUDE, size=N_FORCE_STEPS
+        loc=0, scale=FORCE_MAGNITUDE, size=N_FORCE_STEPS
     )
 
     pendulum.reset()
     for f in force_vec:
         pendulum.step(action=f)
+
     pendulum.close()
