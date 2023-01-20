@@ -86,7 +86,7 @@ class PendulumOnCart:
         if self.render_bool:
             self.render()
 
-        state = np.array[self.x.full(), self.x_dot.full(), self.theta.full(), self.theta_dot.full()].reshape(-1,1)
+        state = np.array([self.x.full(), self.x_dot.full(), self.theta.full(), self.theta_dot.full()]).reshape(-1,1)
 
         return state
 
