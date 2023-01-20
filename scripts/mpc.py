@@ -6,7 +6,7 @@ import casadi.tools as ct
 
 
 class MPC:
-    def __init__(self, K=2, N=30, Q=1, R=1, dt=0.02):
+    def __init__(self, K=2, N=30, Q=1e-3, R=1e-4, dt=0.02):
         self.mpc_solver = None
         self.K = K #2
         self.N = N #30
@@ -20,7 +20,7 @@ class MPC:
         self.opt_x = None
 
         self.max_x = 3.0 #8.0
-        self.max_u = 30.0 #2.0
+        self.max_u = 30 #2.0
 
     def generate_solver(self):
         ## System declaration
@@ -91,8 +91,8 @@ class MPC:
         ## MPC with Orthogonal Collocation
         Q = self.Q
         Q = Q * np.diag(np.ones(nx))
-        Q[0, 0] *= 1.0
-        Q[1, 1] *= 1.0
+        #Q[0, 0] *= 1.0
+        #Q[1, 1] *= 1.0
 
         R = self.R
         R = np.diag(R * np.ones(nu))
