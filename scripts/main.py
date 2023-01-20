@@ -16,19 +16,19 @@ def simulate():
     nu = 1
     DT = 0.02
 
+    # Define the initial state
+    # x_0 = np.array([0, 0, 0, 0]).reshape(nx, 1)
+    x_0 = np.array([0, 0.2, np.pi / 2, 0]).reshape(nx, 1)
+
     # configure controller
     solver = mpc.MPC(dt=DT)
     controller = solver.generate_solver()
 
     # configure simulator
-    pendulum = cartpole_sim.PendulumOnCart(dt=DT, render=True)
+    pendulum = cartpole_sim.PendulumOnCart(initial_states=x_0, dt=DT, render=True)
     pendulum.reset()
 
     # loop Variables
-    # Define the initial state
-    # x_0 = np.array([0, 0.2, np.pi / 2, 0]).reshape(nx, 1)
-    x_0 = np.array([0, 0.2, np.pi / 2, 0]).reshape(nx, 1)
-
     # Initialize result lists for states and inputs
     res_x_mpc = [x_0]
     res_u_mpc = []
