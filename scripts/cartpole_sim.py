@@ -14,25 +14,13 @@ class PendulumOnCart:
         self.mp = 0.23
         self.mtotal = self.mc + self.mp
         self.dt = dt
+
         # self.length = 0.5  # actually half the pole's length
         # self.polemass_length = self.masspole * self.length
+
         self.lp = 0.36
         self.force_mag = 1.0
         self.tau = 0.02  # seconds between state updates
-
-        # # Initial state
-        # self.x0 = 0.5
-        # self.x_dot0 = 0
-        # self.theta0 = 3.1
-        # self.theta_dot0 = 0
-
-        # # KF initial estimates
-        # self.xKF0 = -0.5
-        # self.x_dotKF0 = 0
-        # self.thetaKF0 = 2.8
-        # self.theta_dotKF0 = 0
-        # self.lpKF = 0.1
-        # self.mpKF = 0.1
 
         # # states
         self.x = 0
@@ -94,34 +82,6 @@ class PendulumOnCart:
         self.x_dot = self.x_sym0[1]
         self.theta = self.x_sym0[2]
         self.theta_dot = self.x_sym0[3]
-
-        (# x, x_dot, theta, theta_dot = (
-        #     self.x,
-        #     self.x_dot,
-        #     self.theta,
-        #     self.theta_dot,
-        # )
-        # u = self.force_mag * action
-        # costheta = math.cos(theta)
-        # sintheta = math.sin(theta)
-
-        # xdd = (
-        #     u
-        #     + self.mp * self.lp * sintheta * theta_dot**2
-        #     - self.mp * self.g * costheta * sintheta
-        # ) / (self.mc + self.mp - self.mp * costheta**2)
-        # thetadd = (
-        #     u * costheta
-        #     + (self.mc + self.mp) * self.g * sintheta
-        #     + self.mp * self.lp * costheta * sintheta * theta_dot**2
-        # ) / (self.mp * self.lp * costheta**2 - (self.mc + self.mp) * self.lp)
-
-        # # Semi-implicit Euler integration
-        # self.x_dot = x_dot + self.tau * xdd
-        # self.x = x + self.tau * x_dot
-        # self.theta_dot = theta_dot + self.tau * thetadd
-        # self.theta = theta + self.tau * theta_dot
-        )
 
         if self.render_bool:
             self.render()
@@ -227,15 +187,17 @@ class PendulumOnCart:
 
 
 if __name__ == "__main__":
+
     pendulum = PendulumOnCart(render=True)
+
     # pendulum.masspole = 0.01
-    N_SIM_STEPS = 800
+    N_SIM_STEPS = 1000
     N_FORCE_STEPS = 5
-    FORCE_MAGNITUTUDE = 0.1  # Newtons
+    FORCE_MAGNITUDE = 0.1  # Newtons
     N_FORCE_STEPS = 50
 
     # triangle force
-    # force_vec = np.linspace(-FORCE_MAGNITUTUDE, FORCE_MAGNITUTUDE, num=N_FORCE_STEPS)
+    # force_vec = np.linspace(-FORCE_MAGNITUDE, FORCE_MAGNITUDE, num=N_FORCE_STEPS)
     # force_vec = np.concatenate([force_vec, -force_vec])
     # force_vec = np.repeat(force_vec, repeats=int(N_SIM_STEPS/N_FORCE_STEPS))
 
@@ -243,10 +205,11 @@ if __name__ == "__main__":
     np.random.seed(42)
     force_vec = np.zeros(N_SIM_STEPS)
     force_vec[:N_FORCE_STEPS] = np.random.normal(
-        loc=0, scale=FORCE_MAGNITUTUDE, size=N_FORCE_STEPS
+        loc=0, scale=FORCE_MAGNITUDE, size=N_FORCE_STEPS
     )
 
     pendulum.reset()
     for f in force_vec:
         pendulum.step(action=f)
+
     pendulum.close()
