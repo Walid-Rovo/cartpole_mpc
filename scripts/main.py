@@ -70,8 +70,7 @@ def simulate():
     ax[0].set_ylabel('states')
     ax[1].set_ylabel('inputs')
     ax[1].set_xlabel('time')
-
-    fig.show()
+    plt.show()
 
 
 if __name__ == "__main__":
