@@ -26,7 +26,6 @@ def simulate():
 
     # configure simulator
     pendulum = cartpole_sim.PendulumOnCart(initial_states=x_0, dt=DT, render=True)
-    pendulum.reset()
 
     # loop Variables
     # Initialize result lists for states and inputs
