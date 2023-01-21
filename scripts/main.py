@@ -12,7 +12,8 @@ from visualization import *
 def simulate():
     # system constants
     # Dimensions of x and u:
-    DT = 0.01
+    DT = 0.05
+    x_ext = np.array([0.36, 0.23]).reshape(-1, 1)
 
     # Define the initial state
     # x_0 = np.array([0.5, 0, 3.1, 0, 0.1, 0.1]).reshape([-1, 1])  # required
@@ -24,7 +25,7 @@ def simulate():
     # configure controller
     solver = MPC(
         K=2,
-        N=20,
+        N=30,
         Q=np.array([[1e-1, 0.0, 0.0, 0.0],
                     [0.0, 1e-2, 0.0, 0.0],
                     [0.0, 0.0, 1e-2, 0.0],
@@ -41,7 +42,7 @@ def simulate():
     # Initialize result lists for states and inputs
     res_x_mpc = [x_0[:4]]
     res_x_mpc_full = [x_0]
-    res_x_hat = [x_0[:4]]
+    res_x_hat = [x_0]
     res_u_mpc = []
 
     # Set number of iterations
@@ -69,12 +70,13 @@ def simulate():
 
         # Store the results
         res_x_mpc.append(x_next)
-        res_x_mpc_full.append(np.concatenate((x_next, x_0[:-2])))
+        res_x_mpc_full.append(np.concatenate((x_next, x_ext)))
         res_x_hat.append(x_hat_full)
         res_u_mpc.append(u_k)
 
     # Make an array from the list of arrays:
     res_x_mpc = np.concatenate(res_x_mpc, axis=1)
+    res_x_mpc_full = np.concatenate(res_x_mpc_full, axis=1)
     res_x_hat = np.concatenate(res_x_hat, axis=1)
     res_u_mpc = np.concatenate(res_u_mpc, axis=1)
 
