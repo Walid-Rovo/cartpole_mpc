@@ -8,7 +8,7 @@ class EKF:
         self,
         x0,
         P0=np.diag([1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6]),
-        Q=np.diag([1e-6, 1e-6, 1e-4, 1e-3, 1e-6, 1e-6]),
+        Q=np.diag([1e-6, 1e-6, 1e-4, 1e-3, 1e-6, 1e-6])*200,
         R=np.diag([1e-4, 1e-4]),
         dt=0.02,
     ):
@@ -123,7 +123,7 @@ class EKF:
             # x0 = system_cont(x0, u_k).full() #plant state
             res_integrator = self.ode_solver(x0=x0, p=u_k)
             x0 = res_integrator["xf"]  # plant state
-            y = self.measurement(x0 + wx).full() + wy
+            y = self.measurement(x0).full()
             x0_observer = x0_observer + L @ (
                 y - C_tilda @ x0_observer
             )  # observed state after correction
