@@ -22,7 +22,16 @@ def simulate():
     observer = EKF(x0=x_0, dt=DT)
 
     # configure controller
-    solver = MPC(dt=DT,N=20)
+    solver = MPC(
+        K=2,
+        N=20,
+        Q=np.array([[1e-1, 0.0, 0.0, 0.0],
+                    [0.0, 1e-2, 0.0, 0.0],
+                    [0.0, 0.0, 1e-2, 0.0],
+                    [0.0, 0.0, 0.0, 1e-1]]),
+        R=1e-4,
+        dt=DT
+    )
     controller = solver.generate_solver()
 
     # configure simulator
@@ -70,8 +79,8 @@ def simulate():
     res_u_mpc = np.concatenate(res_u_mpc, axis=1)
 
     plot_trajectories(res_x_mpc, res_u_mpc)
-    animate_system(res_x_mpc, init=x_0, dt=DT)
     visualize_ekf(res_x_mpc_full, res_x_hat)
+    animate_system(res_x_mpc, init=x_0, dt=DT)
 
 
 if __name__ == "__main__":

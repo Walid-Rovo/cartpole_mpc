@@ -6,7 +6,12 @@ import casadi.tools as ct
 
 
 class MPC:
-    def __init__(self, K=2, N=30, Q=1e-2, R=1e-4, dt=0.02):
+    def __init__(self, K=2, N=30,
+                 Q=np.array([[1e-2, 0.0, 0.0, 0.0],
+                             [0.0, 1e-2, 0.0, 0.0],
+                             [0.0, 0.0, 1e-2, 0.0],
+                             [0.0, 0.0, 0.0, 1e-2]]),
+                 R=1e-4, dt=0.02):
         self.mpc_solver = None
         self.K = K  # 2
         self.N = N  # 30
@@ -95,9 +100,6 @@ class MPC:
 
         ## MPC with Orthogonal Collocation
         Q = self.Q
-        Q = Q * np.diag(np.ones(nx))
-        Q[0, 0] *= 10.0
-        Q[2, 2] *= 10.0
 
         R = self.R
         R = np.diag(R * np.ones(nu))
@@ -187,7 +189,7 @@ class MPC:
         self.ub_g = vertcat(*self.ub_g)
 
         prob = {"f": J, "x": vertcat(self.opt_x), "g": g, "p": x_init}
-        opts = {'ipopt.print_level': 0, 'print_time': 0}
+        opts = {"ipopt.print_level": 0, "print_time": 0}
         self.mpc_solver = nlpsol("solver", "ipopt", prob, opts)
         # 06
 
