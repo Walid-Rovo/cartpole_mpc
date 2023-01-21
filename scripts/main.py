@@ -12,7 +12,7 @@ from visualization import *
 def simulate():
     # system constants
     # Dimensions of x and u:
-    DT = 0.05
+    DT = 0.01
 
     # Define the initial state
     # x_0 = np.array([0.5, 0, 3.1, 0, 0.1, 0.1]).reshape([-1, 1])  # required
@@ -22,7 +22,7 @@ def simulate():
     observer = EKF(x0=x_0, dt=DT)
 
     # configure controller
-    solver = MPC(dt=DT)
+    solver = MPC(dt=DT,N=20)
     controller = solver.generate_solver()
 
     # configure simulator
@@ -31,6 +31,7 @@ def simulate():
     # loop Variables
     # Initialize result lists for states and inputs
     res_x_mpc = [x_0[:4]]
+    res_x_mpc_full = [x_0]
     res_x_hat = [x_0[:4]]
     res_u_mpc = []
 
@@ -40,7 +41,8 @@ def simulate():
     u_k = 0
     # simulation loop
     for _ in range(N_sim):
-        x_hat = observer.discrete_EKF_filter(y=np.array([x_0[0], x_0[2]]), u=u_k)[:4]
+        x_hat_full = observer.discrete_EKF_filter(y=np.array([x_0[0], x_0[2]]), u=u_k)
+        x_hat = x_hat_full[:4]
 
         # solve optimization problem
         solver.update_state(x_hat)
@@ -58,7 +60,8 @@ def simulate():
 
         # Store the results
         res_x_mpc.append(x_next)
-        res_x_hat.append(x_hat)
+        res_x_mpc_full.append(np.concatenate((x_next, x_0[:-2])))
+        res_x_hat.append(x_hat_full)
         res_u_mpc.append(u_k)
 
     # Make an array from the list of arrays:
@@ -68,7 +71,7 @@ def simulate():
 
     plot_trajectories(res_x_mpc, res_u_mpc)
     animate_system(res_x_mpc, init=x_0, dt=DT)
-    visualize_ekf(res_x_mpc, res_x_hat)
+    visualize_ekf(res_x_mpc_full, res_x_hat)
 
 
 if __name__ == "__main__":
