@@ -12,14 +12,11 @@ from visualization import *
 def simulate():
     # system constants
     # Dimensions of x and u:
-    nx = 4
-    nu = 1
     DT = 0.05
 
     # Define the initial state
-    # x_0 = np.array([0, 0, 0, 0]).reshape(nx, 1)
-    # x_0 = np.array([0, 0.2, np.pi / 2, 0, 0.36, 0.23]).reshape([-1, 1])
-    x_0 = np.array([0.5, 0, 3.1, 0, 0.1, 0.1]).reshape([-1, 1])
+    # x_0 = np.array([0.5, 0, 3.1, 0, 0.1, 0.1]).reshape([-1, 1])  # required
+    x_0 = np.array([0.5, 0, 3.1, 0, 0.36, 0.23]).reshape([-1, 1])  # true states
 
     # configure observer
     observer = EKF(x0=x_0, dt=DT)
@@ -40,10 +37,10 @@ def simulate():
     # Set number of iterations
     N_time = 10
     N_sim = int(N_time / DT)
-
+    u_k = 0
     # simulation loop
-    for i in range(N_sim):
-        x_hat = observer.discrete_EKF_filter(y=np.array([x_0[0], x_0[2]]), u=0)[:4]
+    for _ in range(N_sim):
+        x_hat = observer.discrete_EKF_filter(y=np.array([x_0[0], x_0[2]]), u=u_k)[:4]
 
         # solve optimization problem
         solver.update_state(x_hat)
