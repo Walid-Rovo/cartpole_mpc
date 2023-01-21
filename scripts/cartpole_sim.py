@@ -53,7 +53,8 @@ class PendulumOnCart:
         self.system = Function("system", [self.x_sym, self.u_sym], [self.xdot_sym])
         # CasADi integrator instantiation
         self.x_sym0 = np.array(initial_states).reshape(self.nx,1)
-        # The CasADi integrator needs a dictionary of the states ('x'), the system state-space eqself.ations as a CasADi symbolic expression ('ode'), input ('p').
+        # The CasADi integrator needs a dictionary of the states ('x'), the system state-space eqself.ations as a
+        # CasADi symbolic expression ('ode'), input ('p').
         self.ode = {'x': self.x_sym, 'ode': self.xdot_sym, 'p': self.u_sym}
 
         # By default the solver integrates from 0 to 1. We change the final time to dt.
@@ -100,6 +101,9 @@ class PendulumOnCart:
             0,
             0,
         )
+
+    def set_states(self, given_state):
+        self.x, self.x_dot, self.theta, self.theta_dot = given_state
 
     def render(self):
         try:
