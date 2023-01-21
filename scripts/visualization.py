@@ -32,3 +32,17 @@ def animate_system(traj_x, init, dt=0.02):
         anime.set_states(traj_x[:, i])
         anime.render()
         time.sleep(dt)
+
+def visualize(x_data, x_hat_data):
+    nx = x_data.shape[0]
+    fig, ax = plt.subplots(nx)
+    fig.suptitle("EKF Observer")
+
+    for i in range(nx):
+        ax[i].plot(x_data[i, :], label="Real State")
+        ax[i].plot(x_hat_data[i, :], "r--", label="Estimated State")
+        ax[i].set_ylabel("x{}".format(i))
+        ax[i].legend(loc="lower right")
+
+    ax[-1].set_xlabel("time_steps")
+    plt.show()
