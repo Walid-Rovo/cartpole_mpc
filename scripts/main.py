@@ -16,12 +16,15 @@ def simulate():
     # Dimensions of x and u:
     nx = 4
     nu = 1
-    DT = 0.02
+    DT = 0.05
 
     # Define the initial state
     # x_0 = np.array([0, 0, 0, 0]).reshape(nx, 1)
-    x_0 = np.array([0, 0.2, np.pi / 2, 0, 0.36, 0.23]).reshape([-1, 1])
-    observer = EKF(x0=x_0)
+    # x_0 = np.array([0, 0.2, np.pi / 2, 0, 0.36, 0.23]).reshape([-1, 1])
+    x_0 = np.array([0.5, 0, 3.1, 0, 0.1, 0.1]).reshape([-1, 1])
+
+    # configure observer
+    observer = EKF(x0=x_0, dt=DT)
 
     # configure controller
     solver = MPC(dt=DT)
@@ -36,13 +39,15 @@ def simulate():
     res_u_mpc = []
 
     # Set number of iterations
-    N_time = 2
+    N_time = 10
     N_sim = int(N_time / DT)
 
     # simulation loop
     for i in range(N_sim):
         x_hat = observer.discrete_EKF_filter(y=np.array([x_0[0], x_0[2]]), u=0)[:4]
+
         # solve optimization problem
+        solver.update_state(x_hat)
         mpc_res = controller(p=x_hat, lbg=0, ubg=0, lbx=solver.lb_opt_x, ubx=solver.ub_opt_x)
 
         # Extract the control input
