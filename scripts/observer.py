@@ -1,5 +1,6 @@
 import numpy as np
 from casadi import *
+import matplotlib.pyplot as plt
 
 
 class EKF:
@@ -83,3 +84,95 @@ class EKF:
         A = self.A_fun(self.xhat, u)
         self.P = A @ self.P @ A.T + self.Q  # P[k+1|k]
         return self.xhat
+    
+    def discrete_EKF_filter_demo(self, x0, x0_observer, P_0, Q, R, N_sim ):
+        # defining empty list
+        x_data = [x0]
+        x_hat_data = [x0_observer]
+        y_measured = []
+        # defining noise variance
+        var_x = Q @ np.ones([self.nx, 1])
+        var_y = R @ np.ones([self.ny, 1])
+
+
+        for j in range(N_sim):
+            # Gaussian noise for the plant and measurement
+            u_k = np.array([0.0]).reshape([-1, 1])
+            wx = np.random.normal(0, np.sqrt(var_x)).reshape(self.nx, 1)
+            wy = np.random.normal(0, np.sqrt(var_y)).reshape(self.ny, 1)
+
+            # Measurement update / Correction
+            C_tilda = self.C_fun(x0_observer).full()
+            L = P_0 @ C_tilda.T @ inv(C_tilda @ P_0 @ C_tilda.T + self.R)
+
+            #x0 = system_cont(x0, u_k).full() #plant state
+            res_integrator = self.ode_solver(x0=x0, p=u_k) 
+            x0 = res_integrator['xf']   #plant state
+            y = self.measurement(x0+ wx).full() + wy
+            x0_observer = x0_observer + L @ (y - C_tilda @ x0_observer) #observed state after correction
+            P_0 = (np.eye(self.nx) - L @ C_tilda) @ P_0
+
+            x_data.append(x0)
+            x_hat_data.append(x0_observer)
+            y_measured.append(y)
+
+            # Prediction_step
+            x0_observer = self.ode_solver(x0=x0_observer,p=u_k)['xf'].full()  # x[k+1|k]   observed state prior correction
+            A = self.A_fun(x0_observer, u_k)
+            P_0 = A @ P_0 @ A.T + Q  # P[k+1|k]
+
+        x_data = np.concatenate(x_data, axis=1)
+        x_hat_data = np.concatenate(x_hat_data, axis=1)
+
+        return x_data, x_hat_data, y_measured
+    def visualize(self, x_data, x_hat_data):
+        fig, ax = plt.subplots(self.nx)
+        fig.suptitle('EKF Observer')
+
+        for i in range(self.nx):
+            ax[i].plot(x_data[i, :])#,label='real state')
+            ax[i].plot(x_hat_data[i, :],"r--")#, label='estimated state')
+            ax[i].set_ylabel('x{}'.format(i))
+        # ax[i].set_xticklabels([])
+
+        ax[-1].set_xlabel('time_steps')
+    #   fig.legend()
+        plt.show()
+
+if __name__ == "__main__":
+    x_0 = np.array([0.5, 0, 3.1, 0, 0.1, 0.1]).reshape([-1, 1])
+
+    # configure observer
+    DT = 0.05
+
+    observer = EKF(x0=x_0, dt=DT)
+    N_sim = int(10 / DT)
+    x0 = np.array([0.5, 0, 3.1,0,0.36,0.23]).reshape([-1, 1])
+    x_observer = np.array([-0.5, 0, 1.0,0,0.1,0.1]).reshape([-1, 1])
+
+    # Define the measurement covariance matrix
+    R = np.diag([1e-4, 1e-4]);
+
+    # Covariance matrix of the state noise
+    q0 = 1e-6;
+    q1 = 1e-6;
+    q2 = 1e-6;
+    q3 = 1e-6;
+    q4 = 1e-6;
+    q5 = 1e-6;
+
+    Q = np.array([[q0,0,0,0,0,0],
+                [0,q1,0,0,0,0],
+                [0,0,q2,0,0,0],
+                [0,0,0,q3,0,0],
+                [0,0,0,0,q4,0],
+                [0,0,0,0,0,q5]]);
+
+    # Covariance Matrix of initial error
+    P0 = Q*200 ;
+    N_sim = 500
+
+    #call EKF function
+    [plant_state, obs_state_discrete, plant_measurement] = observer.discrete_EKF_filter_demo(x0, x_observer, P0, Q, R, N_sim )
+    observer.visualize(plant_state, obs_state_discrete)
+
