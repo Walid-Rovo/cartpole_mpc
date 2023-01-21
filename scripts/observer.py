@@ -64,7 +64,7 @@ class EKF:
         )
         ode = {"x": x, "ode": x_dot, "p": u}
         # By default, the solver integrates from 0 to 1. We change the final time to dt.
-        opts = {"tf": dt}
+        opts = {"tf": dt, "dump_in": True, "dump_out": True}
         # Create the solver object.
         self.ode_solver = integrator("F", "idas", ode, opts)
         # C: vertcat below
@@ -160,15 +160,11 @@ class EKF:
 
 
 if __name__ == "__main__":
-    x_0 = np.array([0.5, 0, 3.1, 0, 0.1, 0.1]).reshape([-1, 1])
-
-    # configure observer
     DT = 0.05
-
-    observer = EKF(x0=x_0, dt=DT)
     N_sim = int(10 / DT)
     x0 = np.array([0.5, 0, 3.1, 0, 0.36, 0.23]).reshape([-1, 1])
     x0_observer = np.array([-0.5, 0, 1.0, 0, 0.1, 0.1]).reshape([-1, 1])
+    observer = EKF(x0=x0, dt=DT)
 
     # Define the measurement covariance matrix
     R = np.diag([1e-4, 1e-4])
