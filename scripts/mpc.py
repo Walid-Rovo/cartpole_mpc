@@ -6,7 +6,7 @@ import casadi.tools as ct
 
 
 class MPC:
-    def __init__(self, K=2, N=30, Q=1e-3, R=1e-4, dt=0.02):
+    def __init__(self, K=2, N=30, Q=1e-2, R=1e-4, dt=0.02):
         self.mpc_solver = None
         self.K = K #2
         self.N = N #30
@@ -19,15 +19,15 @@ class MPC:
         self.ub_opt_x = None
         self.opt_x = None
 
-        self.max_x = 3.0 #8.0
-        self.max_u = 30 #2.0
+        self.lb_g = None
+        self.ub_g = None
+
+        self.max_x = 8.0 #8.0
+        self.max_x_dot = 8.0
+        self.max_u = 30.0 #2.0
 
     def generate_solver(self):
         ## System declaration
-        # some common parameters
-        # Timestep
-        self.dt = 0.02
-
         # Dimensions of x and u:
         nx = 4
         nu = 1
@@ -37,8 +37,9 @@ class MPC:
         mc = 2.4
         mp = 0.23
         lp = 0.36
+
         # initial state
-        x_0 = np.array([0.5, 0, 3.1, 0]).reshape(nx, 1)
+        # x_0 = self.x_0
 
         # symbolic declaration
         x = SX.sym("x", nx, 1)
@@ -91,8 +92,8 @@ class MPC:
         ## MPC with Orthogonal Collocation
         Q = self.Q
         Q = Q * np.diag(np.ones(nx))
-        #Q[0, 0] *= 1.0
-        #Q[1, 1] *= 1.0
+        Q[0, 0] *= 10.0
+        Q[2, 2] *= 10.0
 
         R = self.R
         R = np.diag(R * np.ones(nu))
@@ -110,7 +111,10 @@ class MPC:
 
         # state constraints
         lb_x = -self.max_x * np.ones((nx, 1))
+        lb_x[1] = -self.max_x_dot
         ub_x = self.max_x * np.ones((nx, 1))
+        ub_x[1] = self.max_x_dot
+
         # input constraints
         lb_u = - self.max_u * np.ones((nu, 1))
         ub_u = self.max_u * np.ones((nu, 1))
@@ -176,12 +180,18 @@ class MPC:
         # 05
         # 06 - Your code here!
         g = vertcat(*g)
-        lb_g = vertcat(*self.lb_g)
-        ub_g = vertcat(*self.ub_g)
+        self.lb_g = vertcat(*self.lb_g)
+        self.ub_g = vertcat(*self.ub_g)
 
         prob = {'f': J, 'x': vertcat(self.opt_x), 'g': g, 'p': x_init}
         self.mpc_solver = nlpsol('solver', 'ipopt', prob)
         # 06
 
         return self.mpc_solver
+
+    def update_state(self, current_state):
+        for i in range(4):
+            self.lb_opt_x['x',0,0,i] = current_state[i]
+            self.ub_opt_x['x',0,0,i] = current_state[i]
+
 
