@@ -68,6 +68,7 @@ def simulate():
 
     plot_trajectories(res_x_mpc, res_u_mpc)
     animate_system(res_x_mpc, init=x_0, dt=DT)
+    visualize_ekf(res_x_mpc, res_x_hat)
 
 
 if __name__ == "__main__":
