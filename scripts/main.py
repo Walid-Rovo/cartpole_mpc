@@ -34,6 +34,7 @@ def simulate():
     # loop Variables
     # Initialize result lists for states and inputs
     res_x_mpc = [x_0[:4]]
+    res_x_hat = [x_0[:4]]
     res_u_mpc = []
 
     # Set number of iterations
@@ -60,10 +61,12 @@ def simulate():
 
         # Store the results
         res_x_mpc.append(x_next)
+        res_x_hat.append(x_hat)
         res_u_mpc.append(u_k)
 
     # Make an array from the list of arrays:
     res_x_mpc = np.concatenate(res_x_mpc, axis=1)
+    res_x_hat = np.concatenate(res_x_hat, axis=1)
     res_u_mpc = np.concatenate(res_u_mpc, axis=1)
 
     plot_trajectories(res_x_mpc, res_u_mpc)
