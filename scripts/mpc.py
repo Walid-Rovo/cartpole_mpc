@@ -187,7 +187,8 @@ class MPC:
         self.ub_g = vertcat(*self.ub_g)
 
         prob = {"f": J, "x": vertcat(self.opt_x), "g": g, "p": x_init}
-        self.mpc_solver = nlpsol("solver", "ipopt", prob)
+        opts = {'ipopt.print_level': 0, 'print_time': 0}
+        self.mpc_solver = nlpsol("solver", "ipopt", prob, opts)
         # 06
 
         return self.mpc_solver
