@@ -125,18 +125,19 @@ class EKF:
         x_hat_data = np.concatenate(x_hat_data, axis=1)
 
         return x_data, x_hat_data, y_measured
+
+
     def visualize(self, x_data, x_hat_data):
         fig, ax = plt.subplots(self.nx)
         fig.suptitle('EKF Observer')
 
         for i in range(self.nx):
-            ax[i].plot(x_data[i, :])#,label='real state')
-            ax[i].plot(x_hat_data[i, :],"r--")#, label='estimated state')
+            ax[i].plot(x_data[i, :],label="Real State")
+            ax[i].plot(x_hat_data[i, :],"r--", label='Estimated State')
             ax[i].set_ylabel('x{}'.format(i))
-        # ax[i].set_xticklabels([])
+            ax[i].legend(loc='lower right')
 
         ax[-1].set_xlabel('time_steps')
-    #   fig.legend()
         plt.show()
 
 if __name__ == "__main__":
@@ -148,7 +149,7 @@ if __name__ == "__main__":
     observer = EKF(x0=x_0, dt=DT)
     N_sim = int(10 / DT)
     x0 = np.array([0.5, 0, 3.1,0,0.36,0.23]).reshape([-1, 1])
-    x_observer = np.array([-0.5, 0, 1.0,0,0.1,0.1]).reshape([-1, 1])
+    x0_observer = np.array([-0.5, 0, 1.0,0,0.1,0.1]).reshape([-1, 1])
 
     # Define the measurement covariance matrix
     R = np.diag([1e-4, 1e-4]);
@@ -173,6 +174,6 @@ if __name__ == "__main__":
     N_sim = 500
 
     #call EKF function
-    [plant_state, obs_state_discrete, plant_measurement] = observer.discrete_EKF_filter_demo(x0, x_observer, P0, Q, R, N_sim )
+    [plant_state, obs_state_discrete, plant_measurement] = observer.discrete_EKF_filter_demo(x0, x0_observer, P0, Q, R, N_sim )
     observer.visualize(plant_state, obs_state_discrete)
 
