@@ -49,8 +49,8 @@ def simulate():
         mpc_res = controller(p=x_hat, lbg=0, ubg=0, lbx=solver.lb_opt_x, ubx=solver.ub_opt_x)
 
         # Extract the control input
-        opt_x_k = solver.opt_x(mpc_res['x'])
-        u_k = opt_x_k['u', 0]
+        opt_x_k = solver.opt_x(mpc_res["x"])
+        u_k = opt_x_k["u", 0]
 
         # simulate the system
         x_next = pendulum.step(action=u_k)

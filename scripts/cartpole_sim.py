@@ -9,7 +9,7 @@ from casadi import *
 
 class PendulumOnCart:
     # TODO: figure out why using theta=3.1 put the pole in the down position. It should be up
-    def __init__(self, initial_states=[0.0, 0.0, 0.1, 0.0],dt=0.02, render=False):
+    def __init__(self, initial_states=[0.0, 0.0, 0.1, 0.0], dt=0.02, render=False):
         # physical parameters
         self.g = -9.81
         self.mc = 2.4
@@ -41,34 +41,42 @@ class PendulumOnCart:
             # x[0]_dot =
             self.x_sym[1],
             # self.x_sym[1]_dot =
-            (self.u_sym + self.mp * self.lp * sin(self.x_sym[2]) * self.x_sym[3]**2 - self.mp * self.g * cos(self.x_sym[2]) * sin(self.x_sym[2]))
-            / (self.mc + self.mp - self.mp * cos(self.x_sym[2])**2),
+            (
+                self.u_sym
+                + self.mp * self.lp * sin(self.x_sym[2]) * self.x_sym[3] ** 2
+                - self.mp * self.g * cos(self.x_sym[2]) * sin(self.x_sym[2])
+            )
+            / (self.mc + self.mp - self.mp * cos(self.x_sym[2]) ** 2),
             # self.x_sym[2]_dot =
             self.x_sym[3],
             # self.x_sym[3]_dot =
-            (self.u_sym * cos(self.x_sym[2]) + (self.mc + self.mp) * self.g * sin(self.x_sym[2]) + self.mp * self.lp * cos(self.x_sym[2]) * sin(self.x_sym[2]) * self.x_sym[3]**2)
-            / (self.mp * self.lp * cos(self.x_sym[2])**2 - (self.mc + self.lp) * self.lp),
+            (
+                self.u_sym * cos(self.x_sym[2])
+                + (self.mc + self.mp) * self.g * sin(self.x_sym[2])
+                + self.mp * self.lp * cos(self.x_sym[2]) * sin(self.x_sym[2]) * self.x_sym[3] ** 2
+            )
+            / (self.mp * self.lp * cos(self.x_sym[2]) ** 2 - (self.mc + self.lp) * self.lp),
         )
 
         self.system = Function("system", [self.x_sym, self.u_sym], [self.xdot_sym])
         # CasADi integrator instantiation
-        self.x_sym0 = np.array(initial_states).reshape(self.nx,1)
+        self.x_sym0 = np.array(initial_states).reshape(self.nx, 1)
         # The CasADi integrator needs a dictionary of the states ('x'), the system state-space eqself.ations as a
         # CasADi symbolic expression ('ode'), input ('p').
-        self.ode = {'x': self.x_sym, 'ode': self.xdot_sym, 'p': self.u_sym}
+        self.ode = {"x": self.x_sym, "ode": self.xdot_sym, "p": self.u_sym}
 
         # By default the solver integrates from 0 to 1. We change the final time to dt.
-        self.opts = {'tf': self.dt}
+        self.opts = {"tf": self.dt}
 
         # Create the solver object.
         # https://casadi.sourceforge.net/api/html/db/d3d/classcasadi_1_1Integrator.html#:~:text=Constructor%20%26%20Destructor%20Documentation
         #                      name, solv typ, function dict, options dict
-        self.ode_solver = integrator('F', 'idas', self.ode, self.opts)
+        self.ode_solver = integrator("F", "idas", self.ode, self.opts)
 
         # render
-        self.world_width = 10 #4.8
-        self.screen_width = 1080 #600
-        self.screen_height = 720 #400
+        self.world_width = 10  # 4.8
+        self.screen_width = 1080  # 600
+        self.screen_height = 720  # 400
         self.screen = None
         self.clock = None
         self.isopen = True
@@ -79,7 +87,7 @@ class PendulumOnCart:
         action = np.array([[action]])
         res_integrator = self.ode_solver(x0=self.x_sym0, p=action)
         # integrator returns dict, one of the values is the final x
-        self.x_sym0 = res_integrator['xf']
+        self.x_sym0 = res_integrator["xf"]
 
         self.x = self.x_sym0[0]
         self.x_dot = self.x_sym0[1]
@@ -89,7 +97,9 @@ class PendulumOnCart:
         if self.render_bool:
             self.render()
 
-        state = np.array([self.x.full(), self.x_dot.full(), self.theta.full(), self.theta_dot.full()]).reshape(-1,1)
+        state = np.array(
+            [self.x.full(), self.x_dot.full(), self.theta.full(), self.theta_dot.full()]
+        ).reshape(-1, 1)
 
         return state
 
@@ -115,9 +125,7 @@ class PendulumOnCart:
         if self.screen is None:
             pygame.init()
             pygame.display.init()
-            self.screen = pygame.display.set_mode(
-                (self.screen_width, self.screen_height)
-            )
+            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         if self.clock is None:
             self.clock = pygame.time.Clock()
 
@@ -137,7 +145,6 @@ class PendulumOnCart:
 
         self.surf = pygame.Surface((self.screen_width, self.screen_height))
         self.surf.fill((255, 255, 255))
-
 
         l, r, t, b = -cartwidth / 2, cartwidth / 2, cartheight / 2, -cartheight / 2
         axleoffset = cartheight / 4.0
@@ -179,7 +186,6 @@ class PendulumOnCart:
             (129, 132, 203),
         )
 
-
         self.surf = pygame.transform.flip(self.surf, False, True)
         self.screen.blit(self.surf, (0, 0))
 
@@ -214,9 +220,7 @@ if __name__ == "__main__":
     # random normal noise force
     np.random.seed(42)
     force_vec = np.zeros(N_SIM_STEPS)
-    force_vec[:N_FORCE_STEPS] = np.random.normal(
-        loc=0, scale=FORCE_MAGNITUDE, size=N_FORCE_STEPS
-    )
+    force_vec[:N_FORCE_STEPS] = np.random.normal(loc=0, scale=FORCE_MAGNITUDE, size=N_FORCE_STEPS)
 
     pendulum.reset()
     for f in force_vec:
