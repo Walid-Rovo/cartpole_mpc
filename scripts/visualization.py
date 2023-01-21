@@ -33,7 +33,8 @@ def animate_system(traj_x, init, dt=0.02):
         anime.render()
         time.sleep(dt)
 
-def visualize(x_data, x_hat_data):
+
+def visualize_ekf(x_data, x_hat_data):
     nx = x_data.shape[0]
     fig, ax = plt.subplots(nx)
     fig.suptitle("EKF Observer")
