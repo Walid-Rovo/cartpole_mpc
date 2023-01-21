@@ -24,7 +24,7 @@ class MPC:
 
         self.max_x = 8.0  # 8.0
         self.max_x_dot = 8.0
-        self.max_u = 30.0  # 2.0
+        self.max_u = 25.0  # 2.0
 
     def generate_solver(self):
         ## System declaration
