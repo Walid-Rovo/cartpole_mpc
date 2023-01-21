@@ -6,12 +6,10 @@ from casadi import *
 from mpc import MPC
 import cartpole_sim
 from observer import EKF
+from visualization import *
 
 
 def simulate():
-    # configure plotter
-    mpl.rcParams['font.size'] = 16
-
     # system constants
     # Dimensions of x and u:
     nx = 4
@@ -31,7 +29,7 @@ def simulate():
     controller = solver.generate_solver()
 
     # configure simulator
-    pendulum = cartpole_sim.PendulumOnCart(initial_states=x_0[:4], dt=DT, render=True)
+    pendulum = cartpole_sim.PendulumOnCart(initial_states=x_0[:4], dt=DT, render=False)
 
     # loop Variables
     # Initialize result lists for states and inputs
@@ -68,17 +66,8 @@ def simulate():
     res_x_mpc = np.concatenate(res_x_mpc, axis=1)
     res_u_mpc = np.concatenate(res_u_mpc, axis=1)
 
-    # plot states and input
-    fig, ax = plt.subplots(2, 1, figsize=(10, 6))
-    # plot the states
-    ax[0].plot(res_x_mpc.T, label=(r"$x$", r"$\dot{x}$", r"$\theta$", r"$\dot{\theta}$"))
-    ax[0].legend(loc="upper right", fontsize="xx-small")
-    ax[1].plot(res_u_mpc.T)
-    # Set labels
-    ax[0].set_ylabel('states')
-    ax[1].set_ylabel('inputs')
-    ax[1].set_xlabel('time')
-    plt.show()
+    plot_trajectories(res_x_mpc, res_u_mpc)
+    animate_system(res_x_mpc, init=x_0, dt=DT)
 
 
 if __name__ == "__main__":
