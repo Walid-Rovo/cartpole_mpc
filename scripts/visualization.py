@@ -21,6 +21,7 @@ def plot_trajectories(traj_x, traj_u):
     ax[0].set_ylabel("states")
     ax[1].set_ylabel("inputs")
     ax[1].set_xlabel("time")
+    ax[0].legend(loc=1, prop={'size': 30})
     plt.show()
 
 
