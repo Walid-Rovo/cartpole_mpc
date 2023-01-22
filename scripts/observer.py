@@ -8,7 +8,7 @@ class EKF:
         self,
         x0,
         P0=np.diag([1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6]),
-        Q=np.diag([1e-6, 1e-6, 1e-4, 1e-3, 1e-6, 1e-6])*200,
+        Q=np.diag([1e-4, 1e-4, 1e-2, 1e-1, 1e-4, 1e-4]),
         R=np.diag([1e-4, 1e-4]),
         dt=0.02,
     ):

@@ -11,7 +11,7 @@ class MPC:
                              [0.0, 1e-2, 0.0, 0.0],
                              [0.0, 0.0, 1e-2, 0.0],
                              [0.0, 0.0, 0.0, 1e-2]]),
-                 R=1e-4, dt=0.02):
+                 R=1e-4, dt=0.02, u_bound=25.0):
         self.mpc_solver = None
         self.K = K  # 2
         self.N = N  # 30
@@ -29,7 +29,7 @@ class MPC:
 
         self.max_x = 8.0  # 8.0
         self.max_x_dot = 8.0
-        self.max_u = 25.0  # 2.0
+        self.max_u = u_bound  # 2.0
 
     def generate_solver(self):
         ## System declaration
