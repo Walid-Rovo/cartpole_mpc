@@ -129,10 +129,12 @@ PARAMS_DICT = {
     ],
 }
 
+
 def append_record(record, filepath):
     with open(filepath, 'a+') as f:
         json.dump(record, f)
         f.write(os.linesep)
+
 
 def shuffle_file(file_path):
     with open(file_path, 'r') as file:
@@ -141,8 +143,10 @@ def shuffle_file(file_path):
     with open(file_path, 'w') as file:
         file.writelines(lines)
 
+
 def random_boolean_from_probability(probability):
     return random.random() < probability
+
 
 if __name__ == "__main__":
 
