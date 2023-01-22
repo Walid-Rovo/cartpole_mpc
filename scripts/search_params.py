@@ -12,6 +12,7 @@ from mpc import MPC
 import cartpole_sim
 from observer import EKF
 
+
 def timeout(seconds):
     def decorator(func):
         @wraps(func)
@@ -23,11 +24,15 @@ def timeout(seconds):
             finally:
                 signal.alarm(0)
             return result
+
         return wrapper
+
     return decorator
+
 
 def raise_timeout(signum, frame):
     raise TimeoutError("Function timed out")
+
 
 @timeout(20)
 def simulate(params_dict):
@@ -109,6 +114,7 @@ def simulate(params_dict):
 
     return x_0
 
+
 def iterate_simulate(thread_number, list_dicts, filename):
     log_filename = "./search_results/result-" + filename + ".log"
     lowest_norm = inf
@@ -132,6 +138,7 @@ def iterate_simulate(thread_number, list_dicts, filename):
                 # Write the log to the file
                 file.write(log_message)
 
+
 def json_to_list_dicts(json_filename):
     # Initialize an empty list
     list_dicts = []
@@ -147,9 +154,11 @@ def json_to_list_dicts(json_filename):
             list_dicts.append(json_data)
     return list_dicts
 
+
 def read_and_start_iteration(thread_number, filename):
     list_dicts = json_to_list_dicts(filename)
     iterate_simulate(thread_number, list_dicts, filename)
+
 
 if __name__ == "__main__":
 
