@@ -64,7 +64,7 @@ class EKF:
         )
         ode = {"x": x, "ode": x_dot, "p": u}
         # By default, the solver integrates from 0 to 1. We change the final time to dt.
-        opts = {"tf": dt, "dump_in": True, "dump_out": True}
+        opts = {"tf": dt, "regularity_check": False, "inputs_check": False}
         # Create the solver object.
         self.ode_solver = integrator("F", "idas", ode, opts)
         # C: vertcat below
@@ -94,9 +94,17 @@ class EKF:
         self.P = (np.eye(self.nx) - L @ C_tilda) @ self.P
 
         # Prediction_step
-        self.xhat = self.ode_solver(x0=self.xhat, p=u)[
-            "xf"
-        ].full()  # x[k+1|k]   observed state prior correction
+        try:
+            self.xhat = self.ode_solver(x0=self.xhat, p=u)[
+                "xf"
+            ].full()  # x[k+1|k]   observed state prior correction
+        except RuntimeError:
+            print("Error integrating in EKF prediction, skipping. Stats:\n"
+                  f"xhat: {self.xhat}\n"
+                  f"P: {self.P}\n"
+                  )
+        # self.xhat = self.ode_solver(x0=self.xhat, p=u)["xf"]
+
         A = self.A_fun(self.xhat, u)
         self.P = A @ self.P @ A.T + self.Q  # P[k+1|k]
         return self.xhat

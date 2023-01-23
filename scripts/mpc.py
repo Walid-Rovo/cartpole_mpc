@@ -6,12 +6,26 @@ import casadi.tools as ct
 
 
 class MPC:
-    def __init__(self, K=2, N=30,
-                 Q=np.array([[1e-2, 0.0, 0.0, 0.0],
-                             [0.0, 1e-2, 0.0, 0.0],
-                             [0.0, 0.0, 1e-2, 0.0],
-                             [0.0, 0.0, 0.0, 1e-2]]),
-                 R=1e-4, dt=0.02, u_bound=25.0):
+    def __init__(
+        self,
+        K=2,
+        N=30,
+        Q=np.array(
+            [
+                [1e-2, 0.0, 0.0, 0.0],
+                [0.0, 1e-2, 0.0, 0.0],
+                [0.0, 0.0, 1e-2, 0.0],
+                [0.0, 0.0, 0.0, 1e-2],
+            ]
+        ),
+        R=1e-4,
+        dt=0.02,
+        x_bound=4.0,
+        xdot_bound=50.0,
+        theta_bound=4.0,
+        thetadot_bound=50.0,
+        u_bound=25.0,
+    ):
         self.mpc_solver = None
         self.K = K  # 2
         self.N = N  # 30
@@ -27,9 +41,11 @@ class MPC:
         self.lb_g = None
         self.ub_g = None
 
-        self.max_x = 8.0  # 8.0
-        self.max_x_dot = 8.0
-        self.max_u = u_bound  # 2.0
+        self.max_x = x_bound
+        self.max_xdot = xdot_bound
+        self.max_theta = theta_bound
+        self.max_thetadot = thetadot_bound
+        self.max_u = u_bound
 
     def generate_solver(self):
         ## System declaration
@@ -116,10 +132,16 @@ class MPC:
         N = self.N
 
         # state constraints
-        lb_x = -self.max_x * np.ones((nx, 1))
-        lb_x[1] = -self.max_x_dot
-        ub_x = self.max_x * np.ones((nx, 1))
-        ub_x[1] = self.max_x_dot
+        lb_x = np.empty((nx, 1))
+        ub_x = lb_x.copy()
+        lb_x[0] = -self.max_x
+        ub_x[0] = self.max_x
+        lb_x[1] = -self.max_xdot
+        ub_x[1] = self.max_xdot
+        lb_x[2] = -self.max_theta
+        ub_x[2] = self.max_theta
+        lb_x[3] = -self.max_thetadot
+        ub_x[3] = self.max_thetadot
 
         # input constraints
         lb_u = -self.max_u * np.ones((nu, 1))
