@@ -15,7 +15,7 @@ class EKF:
         dt=0.02,
     ):
         # Defining parameters
-        g = 9.81  # m/s^2
+        g = -9.81  # m/s^2
         mc = 2.4  # kg
         # nx the number of states, nu the number of inputs and ny the number of measurements
         self.xhat = x0
