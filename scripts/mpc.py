@@ -51,7 +51,7 @@ class MPC:
         self.setpoint = np.zeros([self.nx, 1], dtype=np.float64)
 
         self.dt = dt
-        self.max_solver_iter =max_solver_iter
+        self.max_solver_iter = max_solver_iter
 
         self.lb_opt_x = None
         self.ub_opt_x = None
@@ -182,9 +182,11 @@ class MPC:
 
         # Define Optimization variable
         self.opt_x = ct.struct_symSX(
-            [ct.entry("x", shape=nx, repeat=[N + 1, K + 1]),
-             ct.entry("s", shape=nx, repeat=[N + 1, K + 1]),
-             ct.entry("u", shape=nu, repeat=[N])]
+            [
+                ct.entry("x", shape=nx, repeat=[N + 1, K + 1]),
+                ct.entry("s", shape=nx, repeat=[N + 1, K + 1]),
+                ct.entry("u", shape=nu, repeat=[N]),
+            ]
         )
 
         # Upper & lower bounds
@@ -248,7 +250,11 @@ class MPC:
         self.ub_g = vertcat(*self.ub_g)
 
         prob = {"f": J, "x": vertcat(self.opt_x), "g": g, "p": x_init}
-        opts = {"ipopt.print_level": 2, "print_time": 0, "ipopt.max_iter": int(self.max_solver_iter)}
+        opts = {
+            "ipopt.print_level": 2,
+            "print_time": 0,
+            "ipopt.max_iter": int(self.max_solver_iter),
+        }
         self.controller = nlpsol("solver", "ipopt", prob, opts)
 
     def update_state(self, current_state):
@@ -312,7 +318,9 @@ def simulate(params_dict, x_0=np.array([0.5, 0, 0.0, 0]).reshape([-1, 1])):
             i = 0
 
         solver.update_state(x_next)
-        mpc_res = solver.controller(p=x_next, lbg=0, ubg=0, lbx=solver.lb_opt_x, ubx=solver.ub_opt_x)
+        mpc_res = solver.controller(
+            p=x_next, lbg=0, ubg=0, lbx=solver.lb_opt_x, ubx=solver.ub_opt_x
+        )
 
         # Extract the control input
         opt_x_k = solver.opt_x(mpc_res["x"])
