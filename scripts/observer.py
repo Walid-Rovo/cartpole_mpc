@@ -1,7 +1,9 @@
 import numpy as np
 from casadi import *
 import matplotlib.pyplot as plt
+from cartpole_sim import PendulumOnCart
 
+np.random.seed(99)
 
 class EKF:
     def __init__(
@@ -66,7 +68,7 @@ class EKF:
         # By default, the solver integrates from 0 to 1. We change the final time to dt.
         opts = {"tf": dt, "regularity_check": False, "inputs_check": False}
         # Create the solver object.
-        self.ode_solver = integrator("F", "idas", ode, opts)
+        self.ode_solver = integrator("F", "collocation", ode, opts)
         # C: vertcat below
         y0 = vertcat(x[0], x[2])
         self.measurement = Function("y_k", [x], [y0])
@@ -80,6 +82,9 @@ class EKF:
         # Covariance matrix of the state noise
         self.Q = Q
         self.P = P0
+
+        # Euler
+        self.euler_stepper = Function("x_next", [x, u], [x_next])
 
     def discrete_EKF_filter(self, y, u):
         """
@@ -99,10 +104,12 @@ class EKF:
                 "xf"
             ].full()  # x[k+1|k]   observed state prior correction
         except RuntimeError:
-            print("Error integrating in EKF prediction, skipping. Stats:\n"
-                  f"xhat: {self.xhat}\n"
-                  f"P: {self.P}\n"
-                  )
+            print(
+                "Error integrating in EKF prediction, doing Euler. Stats:\n"
+                f"xhat: {self.xhat}\n"
+                f"P: {self.P}\n"
+            )
+            self.xhat = self.euler_stepper(self.xhat, u).full()
         # self.xhat = self.ode_solver(x0=self.xhat, p=u)["xf"]
 
         A = self.A_fun(self.xhat, u)
@@ -116,11 +123,17 @@ class EKF:
         y_measured = []
         # defining noise variance
         var_x = Q @ np.ones([self.nx, 1])
-        var_y = R @ np.ones([self.ny, 1])
+        var_y = 1e-3 * np.ones([self.ny, 1])
 
+        pendulum = PendulumOnCart(
+            initial_states=x0[:4], dt=0.05, render=False
+        )
         for j in range(N_sim):
             # Gaussian noise for the plant and measurement
-            u_k = np.array([0.0]).reshape([-1, 1])
+            if not j % 200:
+                u_k = (np.random.normal(0, 1e1) + -abs(np.random.normal(0, 1e1)) * x0_observer[1]).reshape(-1, 1)
+            else:
+                u_k = np.zeros_like(u_k)
             wx = np.random.normal(0, np.sqrt(var_x)).reshape(self.nx, 1)
             wy = np.random.normal(0, np.sqrt(var_y)).reshape(self.ny, 1)
 
@@ -129,9 +142,10 @@ class EKF:
             L = P_0 @ C_tilda.T @ inv(C_tilda @ P_0 @ C_tilda.T + self.R)
 
             # x0 = system_cont(x0, u_k).full() #plant state
+            # x0 = np.concatenate([pendulum.step(action=u_k), x0[-2:]], axis=0)
             res_integrator = self.ode_solver(x0=x0, p=u_k)
             x0 = res_integrator["xf"]  # plant state
-            y = self.measurement(x0).full()
+            y = self.measurement(x0).full() + wy
             x0_observer = x0_observer + L @ (
                 y - C_tilda @ x0_observer
             )  # observed state after correction
@@ -142,9 +156,11 @@ class EKF:
             y_measured.append(y)
 
             # Prediction_step
+            # print(x0_observer, x0_observer.shape, u_k, u_k.shape)
             x0_observer = self.ode_solver(x0=x0_observer, p=u_k)[
                 "xf"
             ].full()  # x[k+1|k]   observed state prior correction
+            # raise Exception
             A = self.A_fun(x0_observer, u_k)
             P_0 = A @ P_0 @ A.T + Q  # P[k+1|k]
 
@@ -170,12 +186,12 @@ class EKF:
 if __name__ == "__main__":
     DT = 0.05
     N_sim = int(10 / DT)
-    x0 = np.array([0.5, 0, 3.1, 0, 0.36, 0.23]).reshape([-1, 1])
+    x0 = np.array([0.5, 0, 0.1, 0, 0.36, 0.23]).reshape([-1, 1])
     x0_observer = np.array([-0.5, 0, 1.0, 0, 0.1, 0.1]).reshape([-1, 1])
     observer = EKF(x0=x0, dt=DT)
 
     # Define the measurement covariance matrix
-    R = np.diag([1e-4, 1e-4])
+    R = np.diag([1e-3, 1e-3])
 
     # Covariance matrix of the state noise
     q0 = 1e-6

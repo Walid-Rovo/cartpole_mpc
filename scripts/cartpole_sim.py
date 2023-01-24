@@ -37,15 +37,31 @@ class PendulumOnCart:
         self.x_sym = SX.sym("x", self.nx, 1)
         self.u_sym = SX.sym("u", self.nu, 1)
 
+        # self.xdot_sym = vertcat(
+        #     # x[0]_dot =
+        #     self.x_sym[1],
+        #     # self.x_sym[1]_dot =
+        #     (
+        #         self.u_sym
+        #         + self.mp * self.lp * sin(self.x_sym[2]) * self.x_sym[3] ** 2
+        #         - self.mp * self.g * cos(self.x_sym[2]) * sin(self.x_sym[2])
+        #     )
+        #     / (self.mc + self.mp - self.mp * cos(self.x_sym[2]) ** 2),
+        #     # self.x_sym[2]_dot =
+        #     self.x_sym[3],
+        #     # self.x_sym[3]_dot =
+        #     (
+        #         self.u_sym * cos(self.x_sym[2])
+        #         + (self.mc + self.mp) * self.g * sin(self.x_sym[2])
+        #         + self.mp * self.lp * cos(self.x_sym[2]) * sin(self.x_sym[2]) * self.x_sym[3] ** 2
+        #     )
+        #     / (self.mp * self.lp * cos(self.x_sym[2]) ** 2 - (self.mc + self.lp) * self.lp),
+        # )
         self.xdot_sym = vertcat(
             # x[0]_dot =
             self.x_sym[1],
             # self.x_sym[1]_dot =
-            (
-                self.u_sym
-                + self.mp * self.lp * sin(self.x_sym[2]) * self.x_sym[3] ** 2
-                - self.mp * self.g * cos(self.x_sym[2]) * sin(self.x_sym[2])
-            )
+            (self.u_sym + self.mp * self.lp * sin(self.x_sym[2]) * self.x_sym[3] ** 2 - self.mp * self.g * cos(self.x_sym[2]) * sin(self.x_sym[2]))
             / (self.mc + self.mp - self.mp * cos(self.x_sym[2]) ** 2),
             # self.x_sym[2]_dot =
             self.x_sym[3],
@@ -57,7 +73,6 @@ class PendulumOnCart:
             )
             / (self.mp * self.lp * cos(self.x_sym[2]) ** 2 - (self.mc + self.lp) * self.lp),
         )
-
         self.system = Function("system", [self.x_sym, self.u_sym], [self.xdot_sym])
         # CasADi integrator instantiation
         self.x_sym0 = np.array(initial_states).reshape(self.nx, 1)
@@ -75,13 +90,13 @@ class PendulumOnCart:
 
         # render
         self.world_width = 10  # 4.8
-        self.screen_width = 1080  # 600
-        self.screen_height = 720  # 400
+        self.screen_width = 1600  # 600
+        self.screen_height = 480  # 400
         self.screen = None
         self.clock = None
         self.isopen = True
         self.render_bool = render
-        self.render_fps = 50
+        self.render_fps = int(1 / self.dt)
 
     def step(self, action: float):
         action = np.array([[action]])
@@ -129,12 +144,12 @@ class PendulumOnCart:
         if self.clock is None:
             self.clock = pygame.time.Clock()
 
-        world_width = self.world_width
+        world_width = 40
         scale = self.screen_width / world_width
-        polewidth = 10.0
-        polelen = scale * (2 * self.lp)
-        cartwidth = 50.0
-        cartheight = 30.0
+        polewidth = 7.0
+        polelen = scale * (4 * self.lp)
+        cartwidth = polelen * 2 *  0.4
+        cartheight = polelen * 2 * 0.2
 
         x = (
             self.x,
@@ -171,20 +186,23 @@ class PendulumOnCart:
         gfxdraw.aapolygon(self.surf, pole_coords, (202, 152, 101))
         gfxdraw.filled_polygon(self.surf, pole_coords, (202, 152, 101))
 
-        gfxdraw.aacircle(
-            self.surf,
-            int(cartx),
-            int(carty + axleoffset),
-            int(polewidth / 2),
-            (129, 132, 203),
-        )
-        gfxdraw.filled_circle(
-            self.surf,
-            int(cartx),
-            int(carty + axleoffset),
-            int(polewidth / 2),
-            (129, 132, 203),
-        )
+        try:
+            gfxdraw.aacircle(
+                self.surf,
+                int(cartx),
+                int(carty + axleoffset),
+                int(polewidth / 2),
+                (129, 132, 203),
+            )
+            gfxdraw.filled_circle(
+                self.surf,
+                int(cartx),
+                int(carty + axleoffset),
+                int(polewidth / 2),
+                (129, 132, 203),
+            )
+        except OverflowError:
+            print(cartx, carty)
 
         self.surf = pygame.transform.flip(self.surf, False, True)
         self.screen.blit(self.surf, (0, 0))
