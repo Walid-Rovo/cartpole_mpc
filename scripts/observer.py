@@ -68,7 +68,8 @@ class EKF:
         # By default, the solver integrates from 0 to 1. We change the final time to dt.
         opts = {"tf": dt, "regularity_check": False, "inputs_check": False}
         # Create the solver object.
-        self.ode_solver = integrator("F", "collocation", ode, opts)
+        self.ode_solver_idas = integrator("F", "idas", ode, opts)
+        self.ode_solver_collocation = integrator("F", "collocation", ode, opts)
         # C: vertcat below
         y0 = vertcat(x[0], x[2])
         self.measurement = Function("y_k", [x], [y0])
@@ -82,7 +83,8 @@ class EKF:
         # Covariance matrix of the state noise
         self.Q = Q
         self.P = P0
-
+        self.flag = True
+        self.shrinkage = 1e-6
         # Euler
         self.euler_stepper = Function("x_next", [x, u], [x_next])
 
@@ -93,24 +95,22 @@ class EKF:
             y = measurement(x + wx) + wy
             xhat = ekf.discrete_EKF_filter(y)
         """
+        # For numerical stability, check whether P is ill-conditioned
+        _, S, _ = np.linalg.svd(self.P)
+        if S[0] / S[-1] > 1e3:
+            # If it is, apply 'shrinkage'
+            self.P = self.P + self.shrinkage * np.ones_like(self.P)
+
         C_tilda = self.C_fun(self.xhat).full()
         L = self.P @ C_tilda.T @ inv(C_tilda @ self.P @ C_tilda.T + self.R)
         self.xhat = self.xhat + L @ (y - C_tilda @ self.xhat)  # observed state after correction
         self.P = (np.eye(self.nx) - L @ C_tilda) @ self.P
 
         # Prediction_step
-        try:
-            self.xhat = self.ode_solver(x0=self.xhat, p=u)[
-                "xf"
-            ].full()  # x[k+1|k]   observed state prior correction
-        except RuntimeError:
-            print(
-                "Error integrating in EKF prediction, doing Euler. Stats:\n"
-                f"xhat: {self.xhat}\n"
-                f"P: {self.P}\n"
-            )
-            self.xhat = self.euler_stepper(self.xhat, u).full()
-        # self.xhat = self.ode_solver(x0=self.xhat, p=u)["xf"]
+        # try:
+        self.xhat = self.ode_solver_idas(x0=self.xhat, p=u)[
+            "xf"
+        ].full()  # x[k+1|k]   observed state prior correction
 
         A = self.A_fun(self.xhat, u)
         self.P = A @ self.P @ A.T + self.Q  # P[k+1|k]
@@ -143,7 +143,7 @@ class EKF:
 
             # x0 = system_cont(x0, u_k).full() #plant state
             # x0 = np.concatenate([pendulum.step(action=u_k), x0[-2:]], axis=0)
-            res_integrator = self.ode_solver(x0=x0, p=u_k)
+            res_integrator = self.ode_solver_collocation(x0=x0, p=u_k)
             x0 = res_integrator["xf"]  # plant state
             y = self.measurement(x0).full() + wy
             x0_observer = x0_observer + L @ (
@@ -157,7 +157,7 @@ class EKF:
 
             # Prediction_step
             # print(x0_observer, x0_observer.shape, u_k, u_k.shape)
-            x0_observer = self.ode_solver(x0=x0_observer, p=u_k)[
+            x0_observer = self.ode_solver_collocation(x0=x0_observer, p=u_k)[
                 "xf"
             ].full()  # x[k+1|k]   observed state prior correction
             # raise Exception
