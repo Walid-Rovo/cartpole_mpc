@@ -1,14 +1,10 @@
-from functools import wraps
-import signal
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 from casadi import *
 
 from mpc import MPC
 import cartpole_sim
 from observer import EKF
-from visualization import plot_trajectories, visualize_ekf, animate_system
+from visualization import plot_trajectories, visualize_ekf
 
 np.random.seed(99)
 
@@ -134,9 +130,9 @@ def simulate(
 
         if k == int(7 / params_dict["dt"]):
             # Change x setpoint
-            solver.setpoint[0] = 4
+            solver.setpoint[0] = 3.
             solver.generate()
-        elif k > int(7 / params_dict["dt"]) and k % int(10 / params_dict["dt"]) == 0:
+        elif k > int(7 / params_dict["dt"]) and k % int(5 / params_dict["dt"]) == 0:
             # Flip x setpoint
             solver.setpoint[0] *= -1
             solver.generate()
@@ -171,7 +167,7 @@ def simulate(
 
 if __name__ == "__main__":
     params_dict = {
-        "N_time": 40,
+        "N_time": 20,
         "dt": 0.04,
         "EKF_P0_0": 1e-6,
         "EKF_P0_1": 1e-6,
