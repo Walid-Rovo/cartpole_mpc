@@ -135,7 +135,9 @@ class PendulumOnCart:
             import pygame
             from pygame import gfxdraw
         except ImportError:
-            raise ImportError("pygame is not installed, run `pip install pygame`")
+            print("pygame import error, disabling rendering")
+            self.render_bool = False
+            return
 
         if self.screen is None:
             pygame.init()
@@ -229,11 +231,6 @@ if __name__ == "__main__":
     N_FORCE_STEPS = 5
     FORCE_MAGNITUDE = 0.1  # Newtons
     N_FORCE_STEPS = 50
-
-    # triangle force
-    # force_vec = np.linspace(-FORCE_MAGNITUDE, FORCE_MAGNITUDE, num=N_FORCE_STEPS)
-    # force_vec = np.concatenate([force_vec, -force_vec])
-    # force_vec = np.repeat(force_vec, repeats=int(N_SIM_STEPS/N_FORCE_STEPS))
 
     # random normal noise force
     np.random.seed(42)

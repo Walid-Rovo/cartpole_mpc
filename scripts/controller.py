@@ -1,11 +1,9 @@
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib as mpl
 from casadi import *
 import casadi.tools as ct
 
-import cartpole_sim
-from visualization import plot_trajectories, animate_system
+from cartpole import PendulumOnCart
+from plots import plot_trajectories, animate_system
 
 
 class MPC:
@@ -67,7 +65,6 @@ class MPC:
         self.max_u = u_bound
 
     def generate(self):
-        ## System declaration
         # Dimensions of x and u:
         nx = self.nx
         nu = self.nu
@@ -102,7 +99,7 @@ class MPC:
 
         system = Function("system", [x, u], [xdot])
 
-        ## Collocation settings
+        # Collocation settings
         # collocation degree
         K = self.K
         # collocation points (excluding 0)
@@ -110,7 +107,7 @@ class MPC:
         # collocation points (including 0)
         tau_col = [0] + tau_col
 
-        ## Lagrange Polynomials generation
+        # Lagrange Polynomials generation
         def L(tau_col, tau, j):
             l = 1
             for k in range(len(tau_col)):
@@ -118,7 +115,7 @@ class MPC:
                     l *= (tau - tau_col[k]) / (tau_col[j] - tau_col[k])
             return l
 
-        ## Calculate orthogonal collocation points
+        # Calculate orthogonal collocation points
         tau = SX.sym("tau")
         A = np.zeros((K + 1, K + 1))
         for j in range(K + 1):
@@ -127,14 +124,14 @@ class MPC:
             for k in range(K + 1):
                 A[j, k] = dLj_fcn(tau_col[k])
 
-        ## Calculate continuity coefficients
+        # Calculate continuity coefficients
         D = np.zeros((K + 1, 1))
         for j in range(K + 1):
             Lj = L(tau_col, tau, j)
             Lj_fcn = Function("Lj", [tau], [Lj])
             D[j] = Lj_fcn(1)
 
-        ## MPC with Orthogonal Collocation
+        # MPC with Orthogonal Collocation
         Q = self.Q
         Qf = self.Qf
 
@@ -202,7 +199,7 @@ class MPC:
         self.lb_g = None
         self.ub_g = None
 
-        ## formulate MPC optimization problem
+        # formulate MPC optimization problem
         # initialize empty variables
         J = 0
         g = []  # constraint expression g
@@ -289,7 +286,7 @@ def simulate(params_dict, x_0=np.array([0.5, 0, 0.0, 0]).reshape([-1, 1])):
     solver.generate()
 
     # Configure simulator
-    pendulum = cartpole_sim.PendulumOnCart(
+    pendulum = PendulumOnCart(
         initial_states=x_0[:4], dt=params_dict["dt"], render=True
     )
 

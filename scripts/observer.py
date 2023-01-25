@@ -1,7 +1,8 @@
 import numpy as np
 from casadi import *
 import matplotlib.pyplot as plt
-from cartpole_sim import PendulumOnCart
+
+from cartpole import PendulumOnCart
 
 np.random.seed(99)
 

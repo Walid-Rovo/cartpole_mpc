@@ -13,8 +13,7 @@ PARAMS_DICT = {
         5,
     ],
     "dt": [
-        0.02,
-        0.05,
+        0.04,
     ],
     # EKF
     "EKF_P0_0": [
@@ -87,7 +86,18 @@ PARAMS_DICT = {
         1e-6,
         1e-8
     ],
+    # x measurement error std
+    "wy_0": [
+        1e-6,
+    ],
+    # theta measurement error std
+    "wy_2": [
+        1e-6,
+    ],
     # MPC
+    "max_solver_iter": [
+        40,
+    ],
     "MPC_K": [
         2,
         3,
@@ -122,10 +132,20 @@ PARAMS_DICT = {
         1e-4,
         1e-6,
     ],
+    "MPC_x_bound": [
+        10.0,
+    ],
+    "MPC_xdot_bound": [
+        20.0,
+    ],
+    "MPC_theta_bound": [
+        1.0 * 3.7698,
+    ],  #
+    "MPC_thetadot_bound": [
+        0.7,
+    ],  #
     "MPC_u_bound": [
-        5,
-        15,
-        25,
+        35,
     ],
 }
 

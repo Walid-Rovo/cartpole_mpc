@@ -1,2 +1,6 @@
 F.*
 scripts/F.*
+__pycache__
+*.code-workspace
+search_results/
+searchable_params/

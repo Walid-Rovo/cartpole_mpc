@@ -2,11 +2,11 @@ import json
 import sys
 import numpy as np
 
-from main import simulate
+from simulate import simulate
 
 
 def iterate_simulate(thread_number, list_dicts, filename):
-    log_filename = "./scripts/search_results/result-" + filename + ".log"
+    log_filename = "param_search/search_results/result-" + filename + ".log"
     lowest_norm = np.inf
     for idx, params_dict in enumerate(list_dicts):
         try:
@@ -35,7 +35,7 @@ def json_to_list_dicts(json_filename):
     # Open the JSON file
     # Note: the files are not real JSON files, as they violate JSON fromatting,
     #       so we read them as text files
-    with open("./scripts/searchable_params/" + json_filename, "r") as json_file:
+    with open("param_search/searchable_params/" + json_filename, "r") as json_file:
         # Loop through each line in the file
         for line in json_file:
             # Load the json data from the line

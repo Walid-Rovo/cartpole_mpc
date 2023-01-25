@@ -4,7 +4,7 @@ import matplotlib as mpl
 import matplotlib.font_manager as fm
 import time
 
-import cartpole_sim
+import cartpole as cartpole
 
 # configure plotter
 mpl.rcParams["font.size"] = 16
@@ -38,7 +38,7 @@ def plot_trajectories(traj_x, traj_u, dt):
 
 # function to display animated system
 def animate_system(traj_x, init, dt=0.02):
-    anime = cartpole_sim.PendulumOnCart(initial_states=init, dt=dt, render=True)
+    anime = cartpole.PendulumOnCart(initial_states=init, dt=dt, render=True)
 
     for i in range(traj_x.shape[1]):
         anime.set_states(traj_x[:, i])

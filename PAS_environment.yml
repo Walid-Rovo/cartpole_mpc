@@ -5,15 +5,7 @@ channels:
   - willkessler
 dependencies:
   - python=3.9
-  - jupyter
-  - notebook
   - numpy
   - matplotlib
-  - scipy
   - casadi
-  - scikit-learn
-  - jupytergraffiti
-  - pandas
-  - seaborn
-  - h5py
-  - control
+
