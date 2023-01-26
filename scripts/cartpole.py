@@ -97,6 +97,10 @@ class PendulumOnCart:
         self.isopen = True
         self.render_bool = render
         self.render_fps = int(1 / self.dt)
+        self.player_action = 0.0
+        self.pact_step = 0.5
+        self.pact_max = 1.5
+        self.quit_flag = False
 
     def step(self, action: float):
         action = np.array([[action]])
@@ -145,6 +149,21 @@ class PendulumOnCart:
             self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
         if self.clock is None:
             self.clock = pygame.time.Clock()
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            self.player_action -= self.pact_step
+        elif keys[pygame.K_RIGHT]:
+            self.player_action += self.pact_step
+        else:
+            self.player_action = 0.0
+        if self.player_action > self.pact_max:
+            self.player_action = self.pact_max
+        elif self.player_action < -self.pact_max:
+            self.player_action = -self.pact_max
+
+        if keys[pygame.K_q]:
+            self.quit_flag = True
 
         world_width = 40
         scale = self.screen_width / world_width
@@ -238,7 +257,10 @@ if __name__ == "__main__":
     force_vec[:N_FORCE_STEPS] = np.random.normal(loc=0, scale=FORCE_MAGNITUDE, size=N_FORCE_STEPS)
 
     pendulum.reset()
-    for f in force_vec:
-        pendulum.step(action=f)
-
-    pendulum.close()
+    pendulum.pact_step = 1.5
+    pendulum.pact_max = 10.0
+    try:
+        while True:
+            pendulum.step(action=pendulum.player_action)
+    except KeyboardInterrupt:
+        pendulum.close()

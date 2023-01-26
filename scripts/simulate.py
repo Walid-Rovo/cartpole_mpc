@@ -13,6 +13,7 @@ def simulate(
     x_0_plant=np.array([0.5, 0, 3.1, 0, 0.36, 0.23]).reshape([-1, 1]),
     x_0_observer=np.array([-0.5, 0, 2.8, 0, 0.1, 0.1]).reshape([-1, 1]),
     render=False,
+    control=False,
 ):
     # Configure observer
     observer = EKF(
@@ -94,7 +95,7 @@ def simulate(
     excite_u = 50.0
     u_k = np.array([[excite_u]])
     x_next = x_0_observer[:4]
-
+    # player_action = 0.0
     for k in range(N_sim):
         # Measurement noise
         wy_0 = np.random.normal(0, np.sqrt(params_dict["wy_0"]))
@@ -127,15 +128,19 @@ def simulate(
         # else:
         #     u_k = np.zeros_like(u_k)
 
-        if k == int(7 / params_dict["dt"]):
-            # Change x setpoint
-            solver.setpoint[0] = 3.
-            solver.generate()
-        elif k > int(7 / params_dict["dt"]) and k % int(5 / params_dict["dt"]) == 0:
-            # Flip x setpoint
-            solver.setpoint[0] *= -1
-            solver.generate()
-
+        if not control:
+            if k == int(7 / params_dict["dt"]):
+                # Change x setpoint
+                solver.setpoint[0] = 3.
+                solver.generate()
+            elif k > int(7 / params_dict["dt"]) and k % int(5 / params_dict["dt"]) == 0:
+                # Flip x setpoint
+                solver.setpoint[0] *= -1
+                solver.generate()
+        else:
+            if pendulum.player_action != 0.0 and k % 10 == 0:
+                solver.setpoint[0] += pendulum.player_action
+                solver.generate()
         # Simulate the system
         x_next = pendulum.step(action=u_k)
 
@@ -149,6 +154,9 @@ def simulate(
         res_u_mpc.append(u_k)
         res_std_ekf.append(np.sqrt(np.diag(observer.P).reshape(-1, 1)))
         res_ref_mpc.append(np.array([solver.setpoint[0]]))
+        
+        if pendulum.quit_flag:
+            break
 
     # Make a numpy array from the list of arrays
     res_x_mpc = np.concatenate(res_x_mpc, axis=1)

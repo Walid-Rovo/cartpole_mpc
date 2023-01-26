@@ -50,7 +50,7 @@ if __name__ == "__main__":
     x_0_observer = np.array([-0.5, 0, 2.8, 0, 0.1, 0.1]).reshape([-1, 1])  # PDF observer states
 
     res_x_mpc, res_x_mpc_full, res_x_hat, res_u_mpc, res_std_ekf = simulate(
-        params_dict, x_0_plant, x_0_observer, render=True
+        params_dict, x_0_plant, x_0_observer, render=True, control=False
     )
     plot_trajectories(res_x_mpc, res_u_mpc, params_dict["dt"])
     visualize_ekf(res_x_mpc_full, res_x_hat, res_std_ekf, params_dict["dt"])
