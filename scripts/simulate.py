@@ -5,9 +5,6 @@ from controller import MPC
 from cartpole import PendulumOnCart
 from observer import EKF
 
-np.random.seed(99)
-
-
 def simulate(
     params_dict,
     x_0_plant=np.array([0.5, 0, 3.1, 0, 0.36, 0.23]).reshape([-1, 1]),
@@ -15,6 +12,8 @@ def simulate(
     render=False,
     control=False,
 ):
+    np.random.seed(params_dict["seed"])
+    
     # Configure observer
     observer = EKF(
         x0=x_0_observer,
@@ -118,9 +117,8 @@ def simulate(
         #     excite_u *= -1.5
         #     u_k = np.array([[excite_u]])
         # elif k > int(EXCITE_SECONDS / params_dict["dt"]):
-        solver.update_state(x_hat)
         mpc_res = solver.controller(
-            p=x_next, lbg=0, ubg=0, lbx=solver.lb_opt_x, ubx=solver.ub_opt_x
+            p=x_hat, lbg=0, ubg=0, lbx=solver.lb_opt_x, ubx=solver.ub_opt_x
         )
         # Extract the control input
         opt_x_k = solver.opt_x(mpc_res["x"])
@@ -167,6 +165,6 @@ def simulate(
     res_ref_mpc = np.concatenate(res_ref_mpc, axis=1)
     res_x_mpc = np.concatenate((res_ref_mpc, res_x_mpc), axis=0)
 
-    print(f"Last P for observer: {observer.P}")
+    # print(f"Last P for observer: {observer.P}")
 
-    return res_x_mpc, res_x_mpc_full, res_x_hat, res_u_mpc, res_std_ekf
+    return res_x_mpc, res_x_mpc_full, res_x_hat, res_u_mpc, res_std_ekf, observer.P

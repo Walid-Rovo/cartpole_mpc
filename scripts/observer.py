@@ -98,7 +98,7 @@ class EKF:
         """
         # For numerical stability, check whether P is ill-conditioned
         _, S, _ = np.linalg.svd(self.P)
-        if S[0] / S[-1] > 1e3:
+        if S[0] / S[-1] > 1e2:
             # If it is, apply 'shrinkage'
             self.P = self.P + self.shrinkage * np.ones_like(self.P)
 

@@ -1,90 +1,64 @@
 import datetime
 import random
-import numpy as np
 import json
 import os
 
-TOTAL_PERMS = 1000
-STEP_STD = 1e-1
+TOTAL_PERMS = 50
+STEP_STD = 1e2
 FILEPATH = "./searchable_params/params_perms-" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + ".json"
 
 PARAMS_DICT = {
+    "seed": [
+        0,
+    ],
     "N_time": [
-        5,
+        30,
     ],
     "dt": [
         0.04,
     ],
     # EKF
     "EKF_P0_0": [
-        1e-2,
-        1e-4,
         1e-6,
     ],
     "EKF_P0_1": [
-        1e-2,
-        1e-4,
         1e-6,
     ],
     "EKF_P0_2": [
-        1e-2,
-        1e-4,
         1e-6,
     ],
     "EKF_P0_3": [
-        1e-2,
-        1e-4,
         1e-6,
     ],
     "EKF_P0_4": [
-        1e-2,
-        1e-4,
         1e-6,
     ],
     "EKF_P0_5": [
-        1e-2,
-        1e-4,
         1e-6,
     ],
     "EKF_Q_0": [
-        1e1,
-        1e-2,
-        1e-4,
+        1e-6,
     ],
     "EKF_Q_1": [
-        1e1,
-        1e-2,
-        1e-4,
+        1e-6,
     ],
     "EKF_Q_2": [
-        1e1,
-        1e-2,
-        1e-4,
+        1e-6,
     ],
     "EKF_Q_3": [
-        1e1,
-        1e-2,
-        1e-4,
+        1e-6,
     ],
     "EKF_Q_4": [
-        1e1,
-        1e-2,
-        1e-4,
+        1e-3,
     ],
     "EKF_Q_5": [
-        1e1,
-        1e-2,
-        1e-4,
+        1e-3,
     ],
     "EKF_R_0": [
-        1e-4,
         1e-6,
-        1e-8
     ],
     "EKF_R_1": [
-        1e-4,
         1e-6,
-        1e-8
     ],
     # x measurement error std
     "wy_0": [
@@ -97,30 +71,29 @@ PARAMS_DICT = {
     # MPC
     "max_solver_iter": [
         40,
+        500,
+        2000,
     ],
     "MPC_K": [
         2,
-        3,
     ],
     "MPC_N": [
-        15,
-        30,
-        45,
+        40,
+        60,
+        80,
     ],
     "MPC_Q_0": [
         1e-1,
+        1e-2,
         1e-3,
-        1e-5,
     ],
     "MPC_Q_1": [
-        1e-1,
-        1e-3,
-        1e-5,
+        1e-6,
     ],
     "MPC_Q_2": [
-        1e-1,
+        1e-2,
         1e-3,
-        1e-5,
+        1e-4,
     ],
     "MPC_Q_3": [
         1e-1,
@@ -128,24 +101,32 @@ PARAMS_DICT = {
         1e-5,
     ],
     "MPC_R": [
-        1e-2,
+        1e-3,
         1e-4,
-        1e-6,
+        1e-5,
     ],
     "MPC_x_bound": [
         10.0,
     ],
     "MPC_xdot_bound": [
         20.0,
+        30.0,
+        40.0,
     ],
     "MPC_theta_bound": [
-        1.0 * 3.7698,
+        0.8 * 3.1415,
+        1.0 * 3.1415,
+        1.2 * 3.1415,
+        1.4 * 3.1415,
     ],  #
     "MPC_thetadot_bound": [
+        0.3,
+        0.5,
         0.7,
+        0.9,
     ],  #
     "MPC_u_bound": [
-        35,
+        25,
     ],
 }
 
@@ -198,6 +179,6 @@ if __name__ == "__main__":
         keys_with_values = {}
         for j, key in enumerate(list_of_keys):
             keys_with_values[key] = PARAMS_DICT[key][index_list[j]]
-        print(f"Index {n}, recording dict:\n{keys_with_values}")
+        keys_with_values["seed"] = random.randint(1, 10000000)
         append_record(keys_with_values, FILEPATH)
         shuffle_file(FILEPATH)
