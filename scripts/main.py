@@ -7,7 +7,7 @@ from plots import visualize_ekf, plot_trajectories
 if __name__ == "__main__":
     params_dict = {
         "seed": 3875886,
-        "N_time": 7,
+        "N_time": 20,
         "dt": 0.04,
         "EKF_P0_0": 1e-06,
         "EKF_P0_1": 1e-06,
@@ -25,7 +25,7 @@ if __name__ == "__main__":
         "EKF_R_1": 1e-06,
         "wy_0": 1e-06,
         "wy_2": 1e-06,
-        "max_solver_iter": 40,
+        "max_solver_iter": 60,
         "MPC_K": 2,
         "MPC_N": 60,
         "MPC_Q_0": 0.1,

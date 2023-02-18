@@ -80,7 +80,7 @@ class PendulumOnCart:
         # CasADi symbolic expression ('ode'), input ('p').
         self.ode = {"x": self.x_sym, "ode": self.xdot_sym, "p": self.u_sym}
 
-        # By default the solver integrates from 0 to 1. We change the final time to dt.
+        # By default, the solver integrates from 0 to 1. We change the final time to dt.
         self.opts = {"tf": self.dt}
 
         # Create the solver object.

@@ -46,8 +46,8 @@ class EKF:
                 + ((x[5] * x[4] * (x[3] ** 2) * sin(x[2]) * cos(x[2])) / den_t2)
                 + ((u[0] * cos(x[2])) / den_t2)
             ),
-            x[4] + 0,
-            x[5] + 0,
+            0, # x[4] + 0,
+            0, # x[5] + 0,
         )
 
         # Continuous system
