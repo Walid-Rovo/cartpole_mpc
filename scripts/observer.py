@@ -6,6 +6,7 @@ from cartpole import PendulumOnCart
 
 np.random.seed(99)
 
+
 class EKF:
     def __init__(
         self,
@@ -46,8 +47,8 @@ class EKF:
                 + ((x[5] * x[4] * (x[3] ** 2) * sin(x[2]) * cos(x[2])) / den_t2)
                 + ((u[0] * cos(x[2])) / den_t2)
             ),
-            0, # x[4] + 0,
-            0, # x[5] + 0,
+            0,  # x[4] + 0,
+            0,  # x[5] + 0,
         )
 
         # Continuous system
@@ -104,7 +105,9 @@ class EKF:
 
         C_tilda = self.C_fun(self.xhat).full()
         L = self.P @ C_tilda.T @ inv(C_tilda @ self.P @ C_tilda.T + self.R)
-        self.xhat = self.xhat + L @ (y - C_tilda @ self.xhat)  # observed state after correction
+        self.xhat = self.xhat + L @ (
+            y - C_tilda @ self.xhat
+        )  # observed state after correction
         self.P = (np.eye(self.nx) - L @ C_tilda) @ self.P
 
         # Prediction_step
@@ -126,13 +129,14 @@ class EKF:
         var_x = Q @ np.ones([self.nx, 1])
         var_y = 1e-3 * np.ones([self.ny, 1])
 
-        pendulum = PendulumOnCart(
-            initial_states=x0[:4], dt=0.05, render=False
-        )
+        pendulum = PendulumOnCart(initial_states=x0[:4], dt=0.05, render=False)
         for j in range(N_sim):
             # Gaussian noise for the plant and measurement
             if not j % 200:
-                u_k = (np.random.normal(0, 1e1) + -abs(np.random.normal(0, 1e1)) * x0_observer[1]).reshape(-1, 1)
+                u_k = (
+                    np.random.normal(0, 1e1)
+                    + -abs(np.random.normal(0, 1e1)) * x0_observer[1]
+                ).reshape(-1, 1)
             else:
                 u_k = np.zeros_like(u_k)
             wx = np.random.normal(0, np.sqrt(var_x)).reshape(self.nx, 1)
@@ -218,7 +222,9 @@ if __name__ == "__main__":
     N_sim = 500
 
     # call EKF function
-    [plant_state, obs_state_discrete, plant_measurement] = observer.discrete_EKF_filter_demo(
-        x0, x0_observer, P0, Q, R, N_sim
-    )
+    [
+        plant_state,
+        obs_state_discrete,
+        plant_measurement,
+    ] = observer.discrete_EKF_filter_demo(x0, x0_observer, P0, Q, R, N_sim)
     observer.visualize(plant_state, obs_state_discrete)

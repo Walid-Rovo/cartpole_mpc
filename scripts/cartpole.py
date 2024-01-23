@@ -61,7 +61,11 @@ class PendulumOnCart:
             # x[0]_dot =
             self.x_sym[1],
             # self.x_sym[1]_dot =
-            (self.u_sym + self.mp * self.lp * sin(self.x_sym[2]) * self.x_sym[3] ** 2 - self.mp * self.g * cos(self.x_sym[2]) * sin(self.x_sym[2]))
+            (
+                self.u_sym
+                + self.mp * self.lp * sin(self.x_sym[2]) * self.x_sym[3] ** 2
+                - self.mp * self.g * cos(self.x_sym[2]) * sin(self.x_sym[2])
+            )
             / (self.mc + self.mp - self.mp * cos(self.x_sym[2]) ** 2),
             # self.x_sym[2]_dot =
             self.x_sym[3],
@@ -69,9 +73,16 @@ class PendulumOnCart:
             (
                 self.u_sym * cos(self.x_sym[2])
                 + (self.mc + self.mp) * self.g * sin(self.x_sym[2])
-                + self.mp * self.lp * cos(self.x_sym[2]) * sin(self.x_sym[2]) * self.x_sym[3] ** 2
+                + self.mp
+                * self.lp
+                * cos(self.x_sym[2])
+                * sin(self.x_sym[2])
+                * self.x_sym[3] ** 2
             )
-            / (self.mp * self.lp * cos(self.x_sym[2]) ** 2 - (self.mc + self.lp) * self.lp),
+            / (
+                self.mp * self.lp * cos(self.x_sym[2]) ** 2
+                - (self.mc + self.lp) * self.lp
+            ),
         )
         self.system = Function("system", [self.x_sym, self.u_sym], [self.xdot_sym])
         # CasADi integrator instantiation
@@ -146,7 +157,9 @@ class PendulumOnCart:
         if self.screen is None:
             pygame.init()
             pygame.display.init()
-            self.screen = pygame.display.set_mode((self.screen_width, self.screen_height))
+            self.screen = pygame.display.set_mode(
+                (self.screen_width, self.screen_height)
+            )
         if self.clock is None:
             self.clock = pygame.time.Clock()
 
@@ -169,7 +182,7 @@ class PendulumOnCart:
         scale = self.screen_width / world_width
         polewidth = 7.0
         polelen = scale * (4 * self.lp)
-        cartwidth = polelen * 2 *  0.4
+        cartwidth = polelen * 2 * 0.4
         cartheight = polelen * 2 * 0.2
 
         x = (
@@ -242,7 +255,6 @@ class PendulumOnCart:
 
 
 if __name__ == "__main__":
-
     pendulum = PendulumOnCart(render=True)
 
     # pendulum.masspole = 0.01
@@ -254,7 +266,9 @@ if __name__ == "__main__":
     # random normal noise force
     np.random.seed(42)
     force_vec = np.zeros(N_SIM_STEPS)
-    force_vec[:N_FORCE_STEPS] = np.random.normal(loc=0, scale=FORCE_MAGNITUDE, size=N_FORCE_STEPS)
+    force_vec[:N_FORCE_STEPS] = np.random.normal(
+        loc=0, scale=FORCE_MAGNITUDE, size=N_FORCE_STEPS
+    )
 
     pendulum.reset()
     pendulum.pact_step = 1.5

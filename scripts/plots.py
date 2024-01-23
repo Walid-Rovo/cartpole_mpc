@@ -18,7 +18,16 @@ def plot_trajectories(traj_x, traj_u, dt):
     fig.suptitle("Tracking MPC")
     time = dt * np.arange(0, traj_x.shape[-1], 1).reshape(-1, 1)
     ax[0].set_ylabel("states")
-    ax[0].plot(time, traj_x[1:, :].T, label=(r"$x \ (m)$", r"$\dot{x} \ (\frac{m}{s})$", r"$\theta \ (rad)$", r"$\dot{\theta} \ (\frac{rad}{s})$"))
+    ax[0].plot(
+        time,
+        traj_x[1:, :].T,
+        label=(
+            r"$x \ (m)$",
+            r"$\dot{x} \ (\frac{m}{s})$",
+            r"$\theta \ (rad)$",
+            r"$\dot{\theta} \ (\frac{rad}{s})$",
+        ),
+    )
     ax[0].legend(loc="lower right", fontsize="xx-small")
 
     ax[1].set_ylabel("ref. tracking")
@@ -63,12 +72,12 @@ def visualize_ekf(x_data, x_hat_data, res_std_ekf, dt):
             time,
             x_hat_data[i, :] + (N_STD * np.array(res_std_ekf[i, :])),
             x_hat_data[i, :] - (N_STD * np.array(res_std_ekf[i, :])),
-            color='grey',
+            color="grey",
             alpha=0.4,
             label="$\pm 3 \sigma$",
         )
     ax[0].plot(label="$\Delta{t}$ = ")
     handles, labels = ax[0].get_legend_handles_labels()
-    fig.legend(handles, labels, loc='upper right', prop=fm.FontProperties(size=18))
+    fig.legend(handles, labels, loc="upper right", prop=fm.FontProperties(size=18))
     ax[-1].set_xlabel("$time (s)$")
     plt.show()

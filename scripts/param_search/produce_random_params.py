@@ -5,7 +5,11 @@ import os
 
 TOTAL_PERMS = 50
 STEP_STD = 1e2
-FILEPATH = "./searchable_params/params_perms-" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + ".json"
+FILEPATH = (
+    "./searchable_params/params_perms-"
+    + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+    + ".json"
+)
 
 PARAMS_DICT = {
     "seed": [
@@ -132,16 +136,16 @@ PARAMS_DICT = {
 
 
 def append_record(record, filepath):
-    with open(filepath, 'a+') as f:
+    with open(filepath, "a+") as f:
         json.dump(record, f)
         f.write(os.linesep)
 
 
 def shuffle_file(file_path):
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         lines = file.readlines()
     random.shuffle(lines)
-    with open(file_path, 'w') as file:
+    with open(file_path, "w") as file:
         file.writelines(lines)
 
 
@@ -150,7 +154,6 @@ def random_boolean_from_probability(probability):
 
 
 if __name__ == "__main__":
-
     list_of_keys = list(PARAMS_DICT.keys())
     list_of_lengths = [len(PARAMS_DICT[key]) for key in list_of_keys]
 
@@ -159,9 +162,11 @@ if __name__ == "__main__":
         product_number *= length
 
     mean_index_step = product_number / TOTAL_PERMS
-    print(f"Parameter combinations search space: {product_number: e}\n"
-          f"Selecting: {TOTAL_PERMS: e}\n"
-          f"Stepping: {mean_index_step} with std. {STEP_STD}")
+    print(
+        f"Parameter combinations search space: {product_number: e}\n"
+        f"Selecting: {TOTAL_PERMS: e}\n"
+        f"Stepping: {mean_index_step} with std. {STEP_STD}"
+    )
 
     index_list = [0]
     while index_list[-1] < product_number:

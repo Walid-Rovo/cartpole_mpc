@@ -7,12 +7,23 @@ from simulate import simulate
 
 
 def iterate_simulate(thread_number, list_dicts, filename):
-    log_filename = "param_search/search_results/result-" + datetime.datetime.now().strftime("%Y%m%d-%H%M") + ".log"
+    log_filename = (
+        "param_search/search_results/result-"
+        + datetime.datetime.now().strftime("%Y%m%d-%H%M")
+        + ".log"
+    )
     lowest_metric = np.array([np.inf, np.inf, np.inf, np.inf])
     print(lowest_metric)
     for idx, params_dict in enumerate(list_dicts):
         try:
-            res_x_mpc, res_x_mpc_full, res_x_hat, res_u_mpc, res_std_ekf, ekf_P = simulate(params_dict, render=False)
+            (
+                res_x_mpc,
+                res_x_mpc_full,
+                res_x_hat,
+                res_u_mpc,
+                res_std_ekf,
+                ekf_P,
+            ) = simulate(params_dict, render=False)
             res_x_mpc = res_x_mpc[:4, :]
         except (TimeoutError, RuntimeError) as e:
             print(f"[{thread_number}] Iteration {idx} errored: {str(e)}\n\n")
@@ -54,7 +65,6 @@ def read_and_start_iteration(thread_number, filename):
 
 
 if __name__ == "__main__":
-
     # Check if the user provided an argument
     if len(sys.argv) > 2:
         filename = sys.argv[1]

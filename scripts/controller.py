@@ -11,22 +11,8 @@ class MPC:
         self,
         K=2,
         N=30,
-        Q=np.array(
-            [
-                [1e-2, 0.0, 0.0, 0.0],
-                [0.0, 1e-2, 0.0, 0.0],
-                [0.0, 0.0, 1e-2, 0.0],
-                [0.0, 0.0, 0.0, 1e-2],
-            ]
-        ),
-        Qf=np.array(
-            [
-                [1e-2, 0.0, 0.0, 0.0],
-                [0.0, 1e-2, 0.0, 0.0],
-                [0.0, 0.0, 1e-2, 0.0],
-                [0.0, 0.0, 0.0, 1e-2],
-            ]
-        ),
+        Q=np.eye(4) * 1e-2,
+        Qf=np.eye(4) * 1e-2,
         R=1e-4,
         dt=0.02,
         x_bound=4.0,
@@ -37,11 +23,11 @@ class MPC:
         max_solver_iter=20,
     ):
         self.mpc_solver = None
-        self.K = K  # 2
-        self.N = N  # 30
-        self.Q = Q  # 20
+        self.K = K
+        self.N = N
+        self.Q = Q
         self.Qf = Qf
-        self.R = R  # 10
+        self.R = R
 
         self.nx = 4
         self.nu = 1
@@ -219,7 +205,9 @@ class MPC:
         for i in range(N):
             # 02 - Your code here!
             # objective
-            J += stage_cost_fcn(self.opt_x["x", i, 0], self.opt_x["s", i, 0], self.opt_x["u", i])
+            J += stage_cost_fcn(
+                self.opt_x["x", i, 0], self.opt_x["s", i, 0], self.opt_x["u", i]
+            )
             # 02
             # 03 - Your code here!
             # equality constraints (system equation)
@@ -286,9 +274,7 @@ def simulate(params_dict, x_0=np.array([0.5, 0, 0.0, 0]).reshape([-1, 1])):
     solver.generate()
 
     # Configure simulator
-    pendulum = PendulumOnCart(
-        initial_states=x_0[:4], dt=params_dict["dt"], render=True
-    )
+    pendulum = PendulumOnCart(initial_states=x_0[:4], dt=params_dict["dt"], render=True)
 
     # Loop Variables
     # initialize result lists for states and inputs

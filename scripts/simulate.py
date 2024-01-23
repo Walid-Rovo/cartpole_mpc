@@ -5,6 +5,7 @@ from controller import MPC
 from cartpole import PendulumOnCart
 from observer import EKF
 
+
 def simulate(
     params_dict,
     x_0_plant=np.array([0.5, 0, 3.1, 0, 0.36, 0.23]).reshape([-1, 1]),
@@ -13,7 +14,7 @@ def simulate(
     control=False,
 ):
     np.random.seed(params_dict["seed"])
-    
+
     # Configure observer
     observer = EKF(
         x0=x_0_observer,
@@ -129,7 +130,7 @@ def simulate(
         if not control:
             if k == int(7 / params_dict["dt"]):
                 # Change x setpoint
-                solver.setpoint[0] = 3.
+                solver.setpoint[0] = 3.0
                 solver.generate()
             elif k > int(7 / params_dict["dt"]) and k % int(5 / params_dict["dt"]) == 0:
                 # Flip x setpoint
@@ -152,7 +153,7 @@ def simulate(
         res_u_mpc.append(u_k)
         res_std_ekf.append(np.sqrt(np.diag(observer.P).reshape(-1, 1)))
         res_ref_mpc.append(np.array([solver.setpoint[0]]))
-        
+
         if pendulum.quit_flag:
             break
 
